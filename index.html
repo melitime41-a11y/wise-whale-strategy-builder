@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WISE WHALE Strategy Builder</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* BASE READABILITY IMPROVEMENTS */
+        body {
+            /* Increase base font size from default 14px to 16px (text-base in Tailwind) */
+            /* Increase line height from default to slightly looser for better readability */
+            line-height: 1.6; 
+        }
+
+        /* Specific style for Input Fields and Textareas */
+        .input-text {
+            font-size: 1rem; /* Base 16px */
+        }
+        
+        /* Custom styles for better visual separation */
+        .domain-checklist-wrapper {
+            background-color: #f7f9fc; /* Light blue-gray for separation */
+            border-top: 1px solid #e0e6ed;
+            padding-top: 1rem;
+            margin-top: 1rem;
+            border-radius: 0 0 0.5rem 0.5rem;
+        }
+        /* Custom style for the circular satisfaction rating */
+        .satisfaction-dot {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            border: 2px solid;
+            cursor: pointer;
+        }
+        /* Fixed Footer styling for branding */
+        footer {
+            background-color: #2c3e50; /* Dark blue/gray */
+            color: #ecf0f1;
+            padding: 1rem 0;
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.8rem;
+        }
+        /* Style for the Guidance Box to increase text size and line height */
+        .guidance-box-text {
+            font-size: 1.0rem; /* Slightly larger text */
+            line-height: 1.75; /* Increased line spacing */
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <header class="bg-blue-800 text-white p-4 shadow-lg sticky top-0 z-10">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <span role="img" aria-label="Whale logo" class="text-3xl">🐳</span>
+                <h1 class="text-xl font-extrabold tracking-wider">WISE WHALE PSYCHOTHERAPY</h1>
+            </div>
+            <p class="hidden sm:block text-sm">Strategy Builder</p>
+        </div>
+    </header>
+
+    <div id="root"></div>
+
+    <footer>
+        <div class="max-w-4xl mx-auto space-y-1">
+            <p class="font-bold">WISE WHALE PSYCHOTHERAPY</p>
+            <p>Southport, Gold Coast, Queensland 4215</p>
+            <p>Email: connect@wisewhalepsychotherapy.com</p>
+            <p class="pt-2">Copyright &copy; WISE WHALE PSYCHOTHERAPY 2025</p>
+        </div>
+    </footer>
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback, useMemo } = React;
+
+        // --- Data Structure for All Four Categories ---
+        const STRATEGY_CONTENT = {
+            'Physical Flow': {
+                prompt: 'This process is all about recognizing your potential and getting your subconscious and conscious minds on the same page. The framework is built on S.M.A.R.T. goals. We encourage your personality and style to list steps and actions you enjoy—less stressful and more rewarding. Remember, we\'re here as a sounding board and a listening ear to amplify the wise voice within you.',
+                title: 'Physical Flow',
+            },
+            'Productive & creative currents': {
+                prompt: 'Let’s shift our focus to a new category of your human function. Remember the process is all about recognizing your potential and getting your subconscious and conscious minds on the same page. Even simple enjoyable steps can bring a sense of accomplishment and help develop intentional, selective, focused attention. You\'ll soon be  frolicking in new seas—maybe even breaching! If you’re not, put your hand up!',
+                title: 'Productive & Creative Currents',
+            },
+            'Tidal connections of inter/intrapersonal relationships': {
+                prompt: 'With kindest intentions to yourself and others— set healthy expectations and aim to develop the art of synchronising in the vast ocean with inner harmony. This process is all about recognizing your potential and getting your subconscious and conscious minds on the same page. Even simple enjoyable steps can bring a sense of accomplishment and help develop intentional, selective, focused attention. Keep up the attention to detail, you’re well on your way! If you need a chat, put your hand up!',
+                title: 'Tidal Connections of Inter/Intrapersonal Relationships',
+            },
+            'Cognitive & mental depth and agility': {
+                prompt: 'In this category recognizing your potential, can be harder to see, never fear that’s why Wise Whales Therapists are here. Let’s start with the next step you can see, defining the transitions you know you’d like to make. We can contribute psychoeducational knowledge to broaden your view of possible actions, suitable for getting your subconscious and conscious minds on the same page. If you want new outcomes, new approaches are all that you need. You’ve added those, keep going you must be almost done with the framework! The fun is near. If you’re treading for air, put your hand up. We’ll guide you to connect with your inner wise whale!',
+                title: 'Cognitive & Mental Depth and Agility',
+            },
+        };
+
+        // --- Initial State and Utility Functions ---
+        const LOCAL_STORAGE_KEY = 'wiseWhalesStrategyData';
+        const initialActionState = { summary: '', easy: '', hard: '', helpful: '' };
+        
+        // Checklist now includes satisfactionRating (1-5, or 0 for unset)
+        const initialDomainChecklist = { sun: false, mon: false, tue: false, wed: false, thu: false, fri: false, sat: false, satisfactionRating: 0 };
+
+        const initialDomainState = (title) => ({
+            domainTitle: title,
+            title: '', successDefinition: '', positionInChange: '', experienceImagined: '', effects: '',
+            actions: [
+                { ...initialActionState, id: 1 },
+                { ...initialActionState, id: 2 },
+                { ...initialActionState, id: 3 },
+            ],
+            // Domain-specific checklist
+            dailyChecklist: { ...initialDomainChecklist }
+        });
+
+        const getInitialStrategyState = () => ({
+            profile: { name: '', date: new Date().toISOString().split('T')[0], theme: '' },
+            transitionalGoal: { current: '', potential: '', position: '' },
+            domains: {
+                physicalFlow: initialDomainState('Physical Flow'),
+                productiveCreative: initialDomainState('Productive & Creative Currents'),
+                tidalConnections: initialDomainState('Tidal Connections of Inter/Intrapersonal Relationships'),
+                cognitiveMental: initialDomainState('Cognitive & Mental Depth and Agility'),
+            },
+            monitoring: {
+                weeklyReflection: '',
+            }
+        });
+
+        // --- Local Storage Hooks ---
+        const useLocalStorage = (key, initialValue) => {
+            const [storedValue, setStoredValue] = useState(() => {
+                try {
+                    const item = window.localStorage.getItem(key);
+                    if (item) {
+                        const parsedItem = JSON.parse(item);
+                        // Ensure domains have the new satisfactionRating field if old data is loaded
+                        const mergedDomains = Object.fromEntries(
+                            Object.entries(parsedItem.domains || getInitialStrategyState().domains).map(([key, domain]) => [
+                                key,
+                                {
+                                    ...domain,
+                                    dailyChecklist: {
+                                        ...initialDomainChecklist,
+                                        ...domain.dailyChecklist,
+                                        // Handle transition from boolean 'satisfied' to number 'satisfactionRating'
+                                        satisfactionRating: domain.dailyChecklist && typeof domain.dailyChecklist.satisfied === 'boolean'
+                                            ? (domain.dailyChecklist.satisfied ? 5 : 0) // Simple conversion for old data
+                                            : (domain.dailyChecklist ? domain.dailyChecklist.satisfactionRating : 0)
+                                    },
+                                },
+                            ])
+                        );
+                        return { ...getInitialStrategyState(), ...parsedItem, domains: mergedDomains };
+                    }
+                    return initialValue;
+                } catch (error) {
+                    console.error("Error reading from local storage:", error);
+                    return initialValue;
+                }
+            });
+
+            const setValue = (value) => {
+                try {
+                    const valueToStore = value instanceof Function ? value(storedValue) : value;
+                    setStoredValue(valueToStore);
+                    window.localStorage.setItem(key, JSON.stringify(valueToStore));
+                } catch (error) {
+                    console.error("Error writing to local storage:", error);
+                }
+            };
+            return [storedValue, setValue];
+        };
+
+        // --- Component for Accordion/Expandable Section ---
+        const StrategySection = ({ title, children, defaultOpen = false }) => {
+            const [isOpen, setIsOpen] = useState(defaultOpen);
+            return (
+                <div className="border border-gray-200 rounded-xl mb-4 bg-white shadow-sm">
+                    <button
+                        className="w-full p-4 flex justify-between items-center text-left font-semibold text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors rounded-t-xl"
+                        onClick={() => setIsOpen(!isOpen)}
+                    >
+                        {title}
+                        <svg className={`w-5 h-5 transition-transform ${isOpen ? 'transform rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    {isOpen && <div className="p-4 border-t border-gray-200">{children}</div>}
+                </div>
+            );
+        };
+
+        // --- Component for Input Field ---
+        const InputField = ({ label, id, name, value, onChange, rows = 1, type = 'text', required = false, placeholder = '' }) => (
+            <div className="mb-4">
+                <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">{label} {required && <span className="text-red-500">*</span>}</label>
+                {rows > 1 ? (
+                    <textarea
+                        id={id} name={name} rows={rows} value={value || ''} onChange={onChange} required={required}
+                        className="input-text w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        placeholder={placeholder}
+                    ></textarea>
+                ) : (
+                    <input
+                        type={type} id={id} name={name} value={value || ''} onChange={onChange} required={required}
+                        className="input-text w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        placeholder={placeholder}
+                    />
+                )}
+            </div>
+        );
+        
+        // --- Domain Daily Checklist Component (Waves of Change) ---
+        const DomainChecklist = ({ domainKey, strategyData, handleMonitoringChecklistChange, handleSatisfactionRating }) => {
+            const daysOfWeek = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+            const checklist = strategyData.domains[domainKey].dailyChecklist;
+            const ratingScale = [1, 2, 3, 4, 5];
+
+            return (
+                <div className="domain-checklist-wrapper mt-6 pt-4">
+                    <h3 className="text-lg font-bold text-gray-700 mb-4 border-b pb-2">Waves of Change Monitoring</h3>
+                    
+                    {/* Daily Engagement Checkboxes */}
+                    <p className="text-sm font-medium text-gray-600 mb-2">Did you engage in this domain's action today?</p>
+                    <div className="grid grid-cols-4 sm:grid-cols-7 gap-3 mb-6">
+                        {daysOfWeek.map(day => (
+                            <label 
+                                key={day} 
+                                className={`flex flex-col items-center p-2 rounded-lg border cursor-pointer transition-colors ${checklist[day] ? 'bg-indigo-100 border-indigo-400' : 'bg-white hover:bg-gray-100'}`}
+                            >
+                                <input 
+                                    type="checkbox" 
+                                    checked={checklist[day]} 
+                                    onChange={() => handleMonitoringChecklistChange(domainKey, day)} 
+                                    className="h-4 w-4 text-indigo-600 rounded" 
+                                />
+                                <span className="text-xs font-medium uppercase mt-1 text-gray-600">{day}</span>
+                            </label>
+                        ))}
+                    </div>
+
+                    {/* Satisfaction Rating */}
+                    <div className="pt-4 border-t border-gray-200">
+                        <p className="text-sm font-medium text-gray-700 mb-3">If you're pleased with your attempt in **{strategyData.domains[domainKey].domainTitle}**, mark the rating below:</p>
+                        <div className="flex justify-between items-center bg-green-50 p-4 rounded-lg border border-green-200">
+                            <span className="text-sm font-medium text-gray-600">Low Satisfaction</span>
+                            <div className="flex space-x-3">
+                                {ratingScale.map(rating => (
+                                    <div 
+                                        key={rating}
+                                        className="satisfaction-dot"
+                                        style={{
+                                            borderColor: checklist.satisfactionRating >= rating ? '#10B981' : '#D1D5DB',
+                                            backgroundColor: checklist.satisfactionRating >= rating ? '#10B981' : 'white',
+                                        }}
+                                        onClick={() => handleSatisfactionRating(domainKey, rating)}
+                                        title={`Satisfaction Level ${rating}`}
+                                    >
+                                        {checklist.satisfactionRating >= rating && <span className="text-white text-xs font-bold">✓</span>}
+                                    </div>
+                                ))}
+                            </div>
+                            <span className="text-sm font-medium text-gray-600">High Satisfaction</span>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Component for Progress Bar / Engagement Visualizer ---
+        const ProgressBar = ({ strategyData }) => {
+            const domainKeys = Object.keys(strategyData.domains);
+            let totalFields = 0;
+            let completedFields = 0;
+            const requiredDomainFields = ['title', 'successDefinition', 'experienceImagined'];
+
+            // 1. Domain Fields
+            domainKeys.forEach(key => {
+                const domain = strategyData.domains[key];
+                requiredDomainFields.forEach(() => { totalFields++; }); 
+                
+                requiredDomainFields.forEach(field => {
+                    if (domain[field] && domain[field].trim() !== '') {
+                        completedFields++;
+                    }
+                });
+                
+                // 3 Action Summaries per domain (9 total)
+                domain.actions.forEach(action => {
+                    totalFields++;
+                    if (action.summary && action.summary.trim() !== '') {
+                         completedFields++;
+                    }
+                });
+            });
+            
+            // 2. Transitional Goal Fields
+            const transitionalFields = ['current', 'potential', 'position'];
+            transitionalFields.forEach(() => { totalFields++; }); 
+            
+            transitionalFields.forEach(field => {
+                if (strategyData.transitionalGoal[field] && strategyData.transitionalGoal[field].trim() !== '') {
+                    completedFields++;
+                }
+            });
+            
+            const progress = Math.round((completedFields / totalFields) * 100) || 0;
+            const progressColor = progress < 33 ? 'bg-red-500' : progress < 66 ? 'bg-yellow-500' : 'bg-green-500';
+
+            return (
+                <div className="mb-6 bg-white p-4 rounded-xl shadow-md border border-gray-200">
+                    <h3 className="text-lg font-bold text-gray-700 mb-2">Strategy Completion</h3>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div 
+                            className={`h-2.5 rounded-full transition-all duration-500 ${progressColor}`} 
+                            style={{ width: `${progress}%` }}
+                        ></div>
+                    </div>
+                    <p className="text-sm font-medium text-gray-500 mt-2">{progress}% Complete ({completedFields} of {totalFields} core items filled)</p>
+                </div>
+            );
+        };
+
+        // --- Main App Component ---
+        const App = () => {
+            // State for application flow: 'welcome' (Stage 1), 'profile' (Stage 2), 'form' (Stage 3: Goal Guidance)
+            const [stage, setStage] = useLocalStorage('wiseWhalesStage', 'welcome');
+            
+            // State for the strategy data, using Local Storage
+            const [strategyData, setStrategyData] = useLocalStorage(LOCAL_STORAGE_KEY, getInitialStrategyState());
+            const [focusCategory, setFocusCategory] = useState('Physical Flow'); // Default focus
+
+            // Check if there is existing data and skip 'welcome' screen
+            useEffect(() => {
+                if (strategyData && strategyData.profile.name && stage === 'welcome') {
+                    setStage('form'); // Skip welcome if profile is filled
+                }
+            }, []); 
+            
+            const currentContent = STRATEGY_CONTENT[focusCategory];
+            const domainKeys = Object.keys(strategyData.domains);
+
+            // HANDLERS (Generic helpers - these don't cause the profile keyboard issue)
+
+            // Generic input handler for Transitional Goal (Stage: 'form' - Step 1)
+            const handleTransitionalGoalChange = (e) => {
+                const { name, value } = e.target;
+                setStrategyData(prev => ({
+                    ...prev,
+                    transitionalGoal: { ...prev.transitionalGoal, [name]: value }
+                }));
+            };
+
+            // Generic handler for nested domain fields (Stage: 'form' - Step 2)
+            const handleDomainChange = useCallback((domainKey, field, value, actionId = null, subField = null) => {
+                setStrategyData(prev => {
+                    const newDomains = { ...prev.domains };
+                    
+                    if (actionId !== null) {
+                        const actionIndex = newDomains[domainKey].actions.findIndex(a => a.id === actionId);
+                        if (actionIndex !== -1) {
+                            newDomains[domainKey].actions[actionIndex] = {
+                                ...newDomains[domainKey].actions[actionIndex],
+                                [subField]: value
+                            };
+                        }
+                    } else {
+                        newDomains[domainKey][field] = value;
+                    }
+                    
+                    return { ...prev, domains: newDomains };
+                });
+            }, []);
+
+            // Handler for Domain-Specific Daily Checklists
+            const handleMonitoringChecklistChange = useCallback((domainKey, dayOrMetric) => {
+                setStrategyData(prev => {
+                    const newDomains = { ...prev.domains };
+                    const currentChecklist = newDomains[domainKey].dailyChecklist;
+
+                    newDomains[domainKey].dailyChecklist = {
+                        ...currentChecklist,
+                        [dayOrMetric]: !currentChecklist[dayOrMetric]
+                    };
+                    
+                    return { ...prev, domains: newDomains };
+                });
+            }, []);
+
+            // Handler for Domain-Specific Satisfaction Rating
+            const handleSatisfactionRating = useCallback((domainKey, rating) => {
+                setStrategyData(prev => {
+                    const newDomains = { ...prev.domains };
+                    const currentRating = newDomains[domainKey].dailyChecklist.satisfactionRating;
+                    
+                    // Toggle functionality: if the same rating is clicked, reset to 0, otherwise set the rating
+                    const newRating = (currentRating === rating) ? 0 : rating;
+
+                    newDomains[domainKey].dailyChecklist = {
+                        ...newDomains[domainKey].dailyChecklist,
+                        satisfactionRating: newRating
+                    };
+                    
+                    return { ...prev, domains: newDomains };
+                });
+            }, []);
+
+            // Handler for Monitoring Reflection (Stage: 'form' - Step 3)
+            const handleMonitoringReflectionChange = (e) => {
+                setStrategyData(prev => ({
+                    ...prev,
+                    monitoring: { ...prev.monitoring, weeklyReflection: e.target.value }
+                }));
+            };
+            
+            // Generate the structured placeholder for the journal
+            const reflectionPlaceholder = `Action 1: [Reflect on what happened, feelings, results, and what was learned]\n\nAction 2: [...]\n\nAction 3: [...]`;
+
+
+            // Function to trigger data save and download (simulates final 'submission')
+            const downloadStrategy = () => {
+                const finalData = {
+                    Profile: strategyData.profile,
+                    TransitionalGoal: strategyData.transitionalGoal,
+                    StrategyDomains: strategyData.domains,
+                    Monitoring: strategyData.monitoring,
+                    GeneratedOn: new Date().toLocaleString()
+                };
+                
+                const dataStr = JSON.stringify(finalData, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = `${strategyData.profile.name.replace(/\s/g, '_')}_Strategy_${new Date().toISOString().split('T')[0]}.json`;
+                
+                let linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+
+                alert(`Strategy for ${strategyData.profile.name} downloaded successfully! (File: ${exportFileDefaultName})`);
+            };
+            
+            // Function to clear local storage and reset the app
+            const clearData = () => {
+                if (window.confirm("Are you sure you want to clear ALL saved data and start a new strategy? This cannot be undone.")) {
+                    localStorage.removeItem(LOCAL_STORAGE_KEY);
+                    localStorage.removeItem('wiseWhalesStage');
+                    setStrategyData(getInitialStrategyState());
+                    setStage('welcome');
+                }
+            };
+
+            // --- WELCOME SCREEN COMPONENT (STAGE 1) ---
+            const WelcomeScreen = () => (
+                <div className="text-center p-8 bg-white rounded-xl shadow-lg">
+                    <h1 className="text-4xl font-extrabold text-blue-800 mb-4">Welcome to the Strategy Builder 👋</h1>
+                    <p className="text-xl text-gray-700 mb-6">Introduction & Guidance (Stage 1 of 3)</p>
+                    <div className="text-left text-gray-600 space-y-4 mb-8">
+                        <p>This platform is designed to help you **define your potential** and align your subconscious and conscious goals using the **S.M.A.R.T. goals framework** across four core domains of human function.</p>
+                        <p>Our focus is on creating steps and actions that you *enjoy* and find rewarding. Less stress, more success.</p>
+                        <p className="font-semibold text-blue-700 border-t pt-2">Instructions:</p>
+                        <ul className="list-disc list-inside ml-4 space-y-1">
+                            <li>**Start Profile Questions** to personalize your journey (Stage 2).</li>
+                            <li>Define your **Transitional Goal** and complete the S.M.A.R.T. steps (Stage 3).</li>
+                            <li>**Waves of Change** monitoring is integrated into each domain for specific tracking.</li>
+                            <li>Your progress is **saved automatically** in your browser.</li>
+                        </ul>
+                    </div>
+                    <button 
+                        onClick={() => setStage('profile')}
+                        className="py-3 px-8 text-white font-bold bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-lg"
+                    >
+                        Start Profile Questions
+                    </button>
+                </div>
+            );
+
+            // --- PROFILE SCREEN COMPONENT (STAGE 2) ---
+            const ProfileScreen = () => {
+                // FIX: Use local state for profile data until submission to prevent global re-render on every keystroke
+                const [localProfile, setLocalProfile] = useState(strategyData.profile);
+                
+                // Keep the global state updated on a delay or on button click
+                const handleLocalChange = (e) => {
+                    const { name, value } = e.target;
+                    setLocalProfile(prev => ({ ...prev, [name]: value }));
+                };
+                
+                const handleProfileSubmit = () => {
+                    // Update the global state with the local state only when moving forward
+                    setStrategyData(prev => ({ ...prev, profile: localProfile }));
+                    setStage('form');
+                };
+
+                const isFormComplete = localProfile.name && localProfile.theme;
+                
+                return (
+                    <div className="p-8 bg-white rounded-xl shadow-lg">
+                        <h1 className="text-3xl font-extrabold text-blue-800 mb-4">Profile Questions 👤</h1>
+                        <p className="text-gray-600 mb-8">Let's set the stage for your strategy. (Stage 2 of 3)</p>
+                        
+                        <InputField 
+                            label="Your Name (or preferred identifier)" 
+                            id="profile-name" name="name" 
+                            value={localProfile.name} 
+                            onChange={handleLocalChange} 
+                            required={true}
+                        />
+                         <InputField 
+                            label="Today's Date" 
+                            id="profile-date" name="date" 
+                            type="date"
+                            value={localProfile.date} 
+                            onChange={handleLocalChange} 
+                        />
+                        <InputField 
+                            label="Overall Theme/Title for this Strategy (e.g., 'The Year of Alignment')" 
+                            id="profile-theme" name="theme" 
+                            rows={2}
+                            value={localProfile.theme} 
+                            onChange={handleLocalChange} 
+                            required={true}
+                        />
+
+                        <div className="mt-8 flex justify-between items-center">
+                            <button 
+                                onClick={() => setStage('welcome')}
+                                className="py-2 px-4 text-sm font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                            >
+                                ← Back to Welcome
+                            </button>
+                            <button 
+                                onClick={handleProfileSubmit}
+                                disabled={!isFormComplete}
+                                className={`py-3 px-8 text-white font-bold rounded-xl transition-colors shadow-lg ${
+                                    isFormComplete ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed'
+                                }`}
+                            >
+                                {isFormComplete ? 'Go to Goal Guidance (Stage 3)' : 'Fill Required Fields'}
+                            </button>
+                        </div>
+                    </div>
+                );
+            };
+
+            // Fallback UI
+            if (!currentContent && stage === 'form') {
+                return <div className="p-8 text-center text-red-500">Error: Focus category "{focusCategory}" not found.</div>;
+            }
+
+            // --- RENDER BASED ON STAGE ---
+            let content;
+            if (stage === 'welcome') {
+                content = (
+                    <div class="pt-8">
+                        <WelcomeScreen />
+                    </div>
+                );
+            } else if (stage === 'profile') {
+                content = (
+                    <div class="pt-8">
+                        <ProfileScreen />
+                    </div>
+                );
+            } else {
+                // Main Strategy Form (STAGE 3: Goal Guidance)
+                content = (
+                    <div className="max-w-3xl mx-auto pt-8">
+                        <header className="text-center mb-8">
+                            <h1 className="text-3xl font-extrabold text-blue-800">Goal Guidance 🌊</h1>
+                            <p className="text-gray-500 mt-1 font-medium">Stage 3 of 3 | Strategy: {strategyData.profile.theme}</p>
+                            
+                            <div className="mt-4 flex flex-wrap justify-center gap-2">
+                                {Object.keys(STRATEGY_CONTENT).map(cat => (
+                                    <button 
+                                        key={cat} 
+                                        onClick={() => setFocusCategory(cat)}
+                                        className={`px-3 py-1 text-sm rounded-full transition-all ${
+                                            cat === focusCategory ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+                                        }`}
+                                    >
+                                        {STRATEGY_CONTENT[cat].title}
+                                    </button>
+                                ))}
+                            </div>
+                        </header>
+
+                        <ProgressBar strategyData={strategyData} />
+
+                        {/* CORE PROMPT / GUIDANCE - Readability Enhanced */}
+                        <div className="bg-blue-50 p-6 rounded-xl border-l-4 border-blue-400 mb-8">
+                            <p className="font-medium text-blue-700 mb-3 guidance-box-text">Guidance for Focus Domain: <span className="font-bold">{currentContent.title}</span></p>
+                            <p className="text-gray-600 guidance-box-text">{currentContent.prompt}</p>
+                        </div>
+
+                        {/* 1. TRANSITIONAL GOAL DEFINITION */}
+                        <StrategySection title="1. Define Your Transitional Goal" defaultOpen={true}>
+                            <p className="text-gray-600 mb-4 font-medium">
+                                Briefly describe the transition from your **Current State** to your **Potential State** and **Distinguish your Position in Change**.
+                            </p>
+                            <InputField label="Current State Summary" id="current-state" name="current" rows={3} value={strategyData.transitionalGoal.current} onChange={handleTransitionalGoalChange} required={true} />
+                            <InputField label="Potential State Summary" id="potential-state" name="potential" rows={3} value={strategyData.transitionalGoal.potential} onChange={handleTransitionalGoalChange} required={true} />
+                            <InputField label="Distinguish your Position in Change (Where are you now on the path?)" id="position-in-change" name="position" rows={1} value={strategyData.transitionalGoal.position} onChange={handleTransitionalGoalChange} required={true} />
+                        </StrategySection>
+
+                        {/* 2. ACTIONS ACROSS FOUR DOMAINS */}
+                        <h2 className="text-xl font-bold text-gray-700 mb-4 mt-8">2. Steps & Actions Across Four Domains</h2>
+                        
+                        {domainKeys.map((domainKey) => {
+                            const domain = strategyData.domains[domainKey];
+                            return (
+                                <StrategySection key={domainKey} title={`Domain: ${domain.domainTitle}`}>
+                                    <InputField label="Step Title (A S.M.A.R.T. Goal)" id={`${domainKey}-title`} name="title" value={domain.title} onChange={(e) => handleDomainChange(domainKey, 'title', e.target.value)} required={true} />
+                                    <InputField label="Define Success (What does achievement look like?)" id={`${domainKey}-success`} name="successDefinition" value={domain.successDefinition} onChange={(e) => handleDomainChange(domainKey, 'successDefinition', e.target.value)} required={true} />
+                                    <InputField label="Imagine how this will be experienced, use your senses" id={`${domainKey}-imagine`} name="experienceImagined" rows={2} value={domain.experienceImagined} onChange={(e) => handleDomainChange(domainKey, 'experienceImagined', e.target.value)} required={true} />
+                                    <InputField label="What effects will this have on yourself and others?" id={`${domainKey}-effects`} name="effects" rows={2} value={domain.effects} onChange={(e) => handleDomainChange(domainKey, 'effects', e.target.value)} />
+
+                                    <h4 className="font-semibold text-md text-blue-700 mt-6 mb-3 border-b pb-2">Define 3 Specific Actions</h4>
+
+                                    {domain.actions.map((action, index) => (
+                                        <div key={action.id} className="bg-gray-50 p-4 rounded-lg mb-4 border border-gray-200">
+                                            <h5 className="font-bold text-gray-800 mb-3">Action {index + 1}.</h5>
+                                            <InputField label="Action Summary (Task, Who's involved, Duration, etc.)" id={`${domainKey}-action-${index}-summary`} rows={3} value={action.summary} onChange={(e) => handleDomainChange(domainKey, 'actions', e.target.value, action.id, 'summary')} required={index === 0 ? true : false} />
+                                            <h6 className="font-medium text-sm text-gray-600 mt-4 mb-2">List predictions on how you think you will go:</h6>
+                                            <InputField label="What will be easy?" id={`${domainKey}-action-${index}-easy`} rows={1} value={action.easy} onChange={(e) => handleDomainChange(domainKey, 'actions', e.target.value, action.id, 'easy')} />
+                                            <InputField label="What will be hard?" id={`${domainKey}-action-${index}-hard`} rows={1} value={action.hard} onChange={(e) => handleDomainChange(domainKey, 'actions', e.target.value, action.id, 'hard')} />
+                                            <InputField label="Are there any helpful actions?" id={`${domainKey}-action-${index}-helpful`} rows={1} value={action.helpful} onChange={(e) => handleDomainChange(domainKey, 'actions', e.target.value, action.id, 'helpful')} />
+                                        </div>
+                                    ))}
+                                    
+                                    {/* Waves of Change Monitoring is embedded here */}
+                                    <DomainChecklist 
+                                        domainKey={domainKey} 
+                                        strategyData={strategyData} 
+                                        handleMonitoringChecklistChange={handleMonitoringChecklistChange} 
+                                        handleSatisfactionRating={handleSatisfactionRating}
+                                    />
+                                </StrategySection>
+                            );
+                        })}
+
+                        {/* 3. MONITORING METRICS (Weekly Reflection Journal) */}
+                        <h2 className="text-xl font-bold text-gray-700 mb-4 mt-8">3. Weekly Reflection Journal</h2>
+                        <div className="form-card p-6 bg-white rounded-xl shadow-sm border border-gray-200">
+                            
+                            <h3 className="text-lg font-semibold text-blue-700 mb-3">
+                                Goal Alignment Evaluation
+                            </h3>
+                            <p className="text-gray-600 mb-4 font-medium border-b pb-2">
+                                **Can you evaluate whether these Steps and Actions are getting you closer to your destination goal— the primary transitional goal?** (Use the space below to reflect on this question across all domains.)
+                            </p>
+
+                            <h3 className="text-lg font-semibold mb-3 mt-4">Structured Weekly Reflection</h3>
+                            <InputField 
+                                label="Reflect on your week's progress and insights across all domains." 
+                                id="weekly-reflection" 
+                                name="weeklyReflection" 
+                                rows={8} 
+                                value={strategyData.monitoring.weeklyReflection} 
+                                onChange={handleMonitoringReflectionChange} 
+                                // Structured placeholder text
+                                placeholder={reflectionPlaceholder}
+                            />
+                        </div>
+
+                        {/* DOWNLOAD & CLEAR BUTTONS */}
+                        <div className="mt-10 mb-8 space-y-4">
+                            <button
+                                onClick={downloadStrategy}
+                                className="w-full py-3 px-6 text-white font-bold rounded-xl shadow-lg bg-green-600 hover:bg-green-700 transition-colors"
+                            >
+                                Download Strategy (Save as JSON File)
+                            </button>
+                            <button
+                                onClick={clearData}
+                                className="w-full py-2 px-6 text-sm font-medium rounded-xl text-red-600 bg-red-100 hover:bg-red-200 transition-colors border border-red-300"
+                            >
+                                Clear All Saved Data & Start New Strategy
+                            </button>
+                            <p className="text-xs text-gray-500 text-center mt-2">Data is saved automatically in your browser as you type.</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen p-4 md:p-8 flex justify-center items-start">
+                    <div className="w-full max-w-4xl">
+                        {content}
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
