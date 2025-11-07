@@ -9,8 +9,72 @@
 	
 </body>
 </html>
-<script type="text/babel">
-        const { useState, useEffect, useCallback, useMemo } = React;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strategy Builder: Wise Whale Psychotherapy</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* General body styling for a clean background */
+        body {
+            background-color: #f4f7f9; /* Light gray/blue background */
+        }
+        /* Style for the satisfaction rating dots */
+        .satisfaction-dot {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid #D1D5DB;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+    </style>
+
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+    <script>
+        const firebaseConfig = {
+          apiKey: "AIzaSyAVoe4aDzGI4TyoNZNhFAi22mc2iCqAXic",
+          authDomain: "cellular-axon-474111-r2.firebaseapp.com",
+          projectId: "cellular-axon-474111-r2",
+          storageBucket: "cellular-axon-474111-r2.firebasestorage.app",
+          messagingSenderId: "745585089161",
+          appId: "1:745585089161:web:dcede471d4a7bfd5b60458",
+          measurementId: "G-JDV77ZHNP2" 
+        };
+        
+        // Initialize Firebase using the global variable
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth(); // Auth must be initialized globally for the listener
+        
+        // Global sign out function used by the React components
+        window.signOutUser = () => {
+            auth.signOut().then(() => {
+                console.log("User signed out.");
+            }).catch((error) => {
+                console.error("Error signing out:", error);
+            });
+        };
+    </script>
+
+</head>
+<body>
+    
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback, useMemo, useRef } = React;
 
         // --- Data Structure for All Four Categories ---
         const STRATEGY_CONTENT = {
@@ -64,6 +128,9 @@
                 weeklyReflection: '',
             }
         });
+
+        // Utility function to convert domain title to a safe ID (e.g., 'Physical Flow' -> 'physicalflow')
+        const slugify = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, '');
 
         // --- Local Storage Hooks ---
         const useLocalStorage = (key, initialValue) => {
@@ -119,10 +186,26 @@
         };
 
         // --- Component for Accordion/Expandable Section ---
-        const StrategySection = ({ title, children, defaultOpen = false }) => {
+        const StrategySection = React.forwardRef(({ title, children, defaultOpen = false, id }, ref) => {
             const [isOpen, setIsOpen] = useState(defaultOpen);
+            // Use useRef internally
+            const sectionRef = useRef(null); 
+
+            // Expose the open/scroll function
+            React.useImperativeHandle(ref, () => ({
+                openAndScroll: () => {
+                    setIsOpen(true);
+                    // Slight delay to ensure accordion animation is complete before scrolling
+                    setTimeout(() => {
+                        if (sectionRef.current) {
+                            sectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }, 50); 
+                }
+            }));
+
             return (
-                <div className="border border-gray-200 rounded-xl mb-4 bg-white shadow-sm">
+                <div id={id} ref={sectionRef} className="border border-gray-200 rounded-xl mb-4 bg-white shadow-sm pt-2" style={{ scrollMarginTop: '80px' }}>
                     <button
                         className="w-full p-4 flex justify-between items-center text-left font-semibold text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors rounded-t-xl"
                         onClick={() => setIsOpen(!isOpen)}
@@ -133,54 +216,9 @@
                     {isOpen && <div className="p-4 border-t border-gray-200">{children}</div>}
                 </div>
             );
-        };
+        });
 
-        // --- Input Component with Local State (FIX for Keyboard Drop) ---
-        const InputWithLocalState = ({ label, id, name, value, onBlurUpdate, rows = 1, type = 'text', required = false, placeholder = '' }) => {
-            // Use local state for fast updates (no re-render of parent component)
-            const [localValue, setLocalValue] = useState(value || '');
-
-            // Update local state when value prop changes (e.g., when loading new data on initial render/domain switch)
-            useEffect(() => {
-                if (localValue !== value) {
-                    setLocalValue(value || '');
-                }
-            }, [value]);
-            
-            // Handler for local input changes
-            const handleChange = (e) => {
-                setLocalValue(e.target.value);
-            };
-
-            // Handler for global state update (when focus leaves the field)
-            const handleBlur = (e) => {
-                // Only update global state if the value has actually changed
-                if (e.target.value !== value) {
-                    onBlurUpdate(e);
-                }
-            };
-
-            return (
-                <div className="mb-4">
-                    <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">{label} {required && <span className="text-red-500">*</span>}</label>
-                    {rows > 1 ? (
-                        <textarea
-                            id={id} name={name} rows={rows} value={localValue} onChange={handleChange} onBlur={handleBlur} required={required}
-                            className="input-text w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all"
-                            placeholder={placeholder}
-                        ></textarea>
-                    ) : (
-                        <input
-                            type={type} id={id} name={name} value={localValue} onChange={handleChange} onBlur={handleBlur} required={required}
-                            className="input-text w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all"
-                            placeholder={placeholder}
-                        />
-                    )}
-                </div>
-            );
-        };
-        
-        // --- Standard InputField (Used only for profile screen inputs and simple static elements) ---
+        // --- Component for Input Field ---
         const InputField = ({ label, id, name, value, onChange, rows = 1, type = 'text', required = false, placeholder = '' }) => (
             <div className="mb-4">
                 <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">{label} {required && <span className="text-red-500">*</span>}</label>
@@ -241,7 +279,7 @@
                                         className="satisfaction-dot"
                                         style={{
                                             borderColor: checklist.satisfactionRating >= rating ? '#10B981' : '#D1D5DB',
-                                            backgroundColor: checklist.satisfactionRating >= rating ? '#10B981' : 'white',
+                                            backgroundColor: checklist.satisfationRating >= rating ? '#10B981' : 'white',
                                         }}
                                         onClick={() => handleSatisfactionRating(domainKey, rating)}
                                         title={`Satisfaction Level ${rating}`}
@@ -319,21 +357,40 @@
             // State for the strategy data, using Local Storage
             const [strategyData, setStrategyData] = useLocalStorage(LOCAL_STORAGE_KEY, getInitialStrategyState());
             const [focusCategory, setFocusCategory] = useState('Physical Flow'); // Default focus
+            
+            // Ref object to store references to all domain sections
+            const domainRefs = useRef({}); 
+
+            // Function to set the focus category and scroll to the section
+            const handleCategoryClick = useCallback((categoryTitle) => {
+                setFocusCategory(categoryTitle);
+                
+                // Find the associated domain key (e.g., 'physicalFlow')
+                const domainKey = domainKeys.find(key => STRATEGY_CONTENT[categoryTitle].title === strategyData.domains[key].domainTitle);
+                
+                // Check if the ref exists and call the exposed function to scroll/open it
+                if (domainKey && domainRefs.current[domainKey]) {
+                    domainRefs.current[domainKey].openAndScroll();
+                } else {
+                    // Fallback scroll to top if ref isn't ready
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            }, [strategyData.domains]); // Depend on domains just in case structure changes
 
             // Check if there is existing data and skip 'welcome' screen
             useEffect(() => {
-                // If the user has a name and the stage is 'welcome', jump to 'form'
+                // Check if profile name is set AND we are on the welcome screen
                 if (strategyData.profile.name && stage === 'welcome') {
-                    setStage('form'); 
+                    setStage('form'); // Skip welcome if profile is filled
                 }
-            }, [stage, strategyData.profile.name]); 
+            }, [stage, strategyData.profile.name]); // Depend on profile.name to catch persistence after sign-in
             
             const currentContent = STRATEGY_CONTENT[focusCategory];
             const domainKeys = Object.keys(strategyData.domains);
 
             // HANDLERS (Generic helpers)
 
-            // Handler for Transitional Goal (onBlurUpdate)
+            // Handler for Transitional Goal (Stage: 'form' - Step 1)
             const handleTransitionalGoalChange = useCallback((e) => {
                 const { name, value } = e.target;
                 setStrategyData(prev => ({
@@ -342,7 +399,7 @@
                 }));
             }, [setStrategyData]); 
 
-            // Generic handler for nested domain fields (onBlurUpdate)
+            // Generic handler for nested domain fields (Stage: 'form' - Step 2)
             const handleDomainChange = useCallback((domainKey, field, value, actionId = null, subField = null) => {
                 setStrategyData(prev => {
                     const newDomains = { ...prev.domains };
@@ -396,7 +453,7 @@
                 });
             }, [setStrategyData]);
 
-            // Handler for Monitoring Reflection (onBlurUpdate)
+            // Handler for Monitoring Reflection (Stage: 'form' - Step 3)
             const handleMonitoringReflectionChange = useCallback((e) => {
                 setStrategyData(prev => ({
                     ...prev,
@@ -441,6 +498,128 @@
                 }
             };
 
+            // --- FIREBASE AUTH COMPONENTS ---
+            const [user, setUser] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [isRegistering, setIsRegistering] = useState(false);
+            const [authError, setAuthError] = useState('');
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            
+            // Listener for Firebase Auth state changes
+            useEffect(() => {
+                // Check if Firebase auth and its onAuthStateChanged method exist
+                if (typeof firebase !== 'undefined' && firebase.auth) {
+                    const unsubscribe = firebase.auth().onAuthStateChanged((currentUser) => {
+                        setUser(currentUser);
+                        setLoading(false);
+                        if (currentUser) {
+                            // If user logs in, ensure stage is moved to 'form' or respects saved stage
+                            const savedStage = localStorage.getItem('wiseWhalesStage');
+                            if (savedStage) {
+                                setStage(savedStage.replace(/"/g, '')); // Remove quotes from string value
+                            } else {
+                                setStage('welcome');
+                            }
+                        } else {
+                            // If user logs out, reset to welcome screen
+                            setStage('welcome');
+                        }
+                    });
+                    return () => unsubscribe();
+                } else {
+                    // Fallback if Firebase scripts aren't loaded (causes the blank screen now)
+                    console.error("Firebase is not loaded. Cannot initialize authentication.");
+                    setLoading(false);
+                    // Render a basic message if Firebase is completely absent
+                    setUser(null);
+                }
+            }, []);
+
+            const handleSignIn = (e) => {
+                e.preventDefault();
+                setAuthError('');
+                // Since public sign-up is disabled, this is only for existing manual users
+                if (typeof firebase !== 'undefined' && firebase.auth) {
+                    firebase.auth().signInWithEmailAndPassword(email, password)
+                        .then(() => {
+                            // Success is handled by onAuthStateChanged
+                            setEmail('');
+                            setPassword('');
+                        })
+                        .catch(error => {
+                            // Specific error message for disabled sign-up (security feature)
+                            if (error.code === 'auth/operation-not-allowed') {
+                                setAuthError('Account creation is disabled for this domain. Please contact your therapist.');
+                            } else {
+                                setAuthError('Sign in failed: ' + error.message);
+                            }
+                        });
+                }
+            };
+
+            // --- AUTH SCREEN COMPONENT (Login/Welcome Gate) ---
+            const AuthScreen = () => (
+                <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+                    <div className="w-full max-w-sm bg-white p-8 rounded-xl shadow-lg border border-gray-200">
+                        <h1 className="text-3xl font-bold text-center text-blue-700 mb-6">Wise Whale Strategy Builder</h1>
+                        <p className="text-center text-gray-500 mb-8">Secure Access for Clients</p>
+
+                        <form onSubmit={handleSignIn}>
+                            <InputField 
+                                label="Email Address" 
+                                id="email" 
+                                type="email"
+                                value={email} 
+                                onChange={(e) => setEmail(e.target.value)} 
+                                required={true}
+                                placeholder="client@example.com"
+                            />
+                            <InputField 
+                                label="Password" 
+                                id="password" 
+                                type="password"
+                                value={password} 
+                                onChange={(e) => setPassword(e.target.value)} 
+                                required={true}
+                                placeholder="••••••••"
+                            />
+
+                            {authError && (
+                                <p className="text-red-600 text-sm mb-4 bg-red-50 p-3 rounded border border-red-200">
+                                    {authError}
+                                </p>
+                            )}
+
+                            <button 
+                                type="submit"
+                                className="w-full py-3 text-white font-bold bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-md mt-4"
+                            >
+                                Sign In
+                            </button>
+                        </form>
+                        
+                        <p className="text-center text-sm text-gray-500 mt-6">
+                            This application is for **Authorized Clients Only**. Accounts are created manually by your therapist.
+                        </p>
+                    </div>
+                </div>
+            );
+
+            // --- RENDER LOGIC ---
+            if (loading) {
+                return (
+                    <div className="flex items-center justify-center min-h-screen">
+                        <p className="text-xl text-gray-600">Loading application...</p>
+                    </div>
+                );
+            }
+
+            if (!user) {
+                // If the user is not signed in, show the Auth/Login Screen
+                return <AuthScreen />;
+            }
+            
             // --- WELCOME SCREEN COMPONENT (STAGE 1) ---
             const WelcomeScreen = () => (
                 <div className="text-center p-8 bg-white rounded-xl shadow-lg">
@@ -472,6 +651,7 @@
                 </div>
             );
 
+
             // --- PROFILE SCREEN COMPONENT (STAGE 2) ---
             const ProfileScreen = () => {
                 // Use local state for profile data until submission to prevent global re-render on every keystroke
@@ -495,13 +675,6 @@
                     <div className="p-8 bg-white rounded-xl shadow-lg">
                         <h1 className="text-3xl font-extrabold text-blue-800 mb-4">Profile Questions 👤</h1>
                         <p className="text-gray-600 mb-8">Let's set the stage for your strategy. (Stage 2 of 3)</p>
-                        
-                        {/* Display existing data for context */}
-                        {strategyData.profile.theme && (
-                            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 mb-6 text-sm text-gray-700">
-                                **Current Strategy:** {strategyData.profile.theme} | **Date:** {strategyData.profile.date}
-                            </div>
-                        )}
                         
                         <InputField 
                             label="Your Name (or preferred identifier)" 
@@ -552,7 +725,7 @@
                 return <div className="p-8 text-center text-red-500">Error: Focus category "{focusCategory}" not found.</div>;
             }
 
-            // --- RENDER BASED ON STAGE ---
+            // --- RENDER BASED ON STAGE (REPEATING ORIGINAL LOGIC FOR COMPLETENESS) ---
             let content;
             if (stage === 'welcome') {
                 content = (
@@ -576,16 +749,16 @@
                             
                             <div className="flex justify-between items-center mt-4 mb-4">
                                 <button 
-                                    onClick={() => setStage('profile')} {/* FIXED: Now goes to Profile Screen */}
+                                    onClick={() => setStage('welcome')}
                                     className="py-2 px-4 text-sm font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
                                 >
-                                    ← Back to Profile
+                                    ← Back to Overview
                                 </button>
                                 <div className="flex flex-wrap justify-center gap-2">
                                     {Object.keys(STRATEGY_CONTENT).map(cat => (
                                         <button 
                                             key={cat} 
-                                            onClick={() => setFocusCategory(cat)}
+                                            onClick={() => handleCategoryClick(cat)}
                                             className={`px-3 py-1 text-sm rounded-full transition-all ${
                                                 cat === focusCategory ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
                                             }`}
@@ -614,78 +787,39 @@
                             <p className="text-gray-600 mb-4 font-medium">
                                 Briefly describe the transition from your **Current State** to your **Potential State** and **Distinguish your Position in Change**.
                             </p>
-                            <InputWithLocalState label="Current State Summary" id="current-state" name="current" rows={3} 
-                                value={strategyData.transitionalGoal.current} 
-                                onBlurUpdate={handleTransitionalGoalChange} 
-                                required={true} 
-                            />
-                            <InputWithLocalState label="Potential State Summary" id="potential-state" name="potential" rows={3} 
-                                value={strategyData.transitionalGoal.potential} 
-                                onBlurUpdate={handleTransitionalGoalChange} 
-                                required={true} 
-                            />
-                            <InputWithLocalState label="Distinguish your Position in Change (Where are you now on the path?)" id="position-in-change" name="position" rows={1} 
-                                value={strategyData.transitionalGoal.position} 
-                                onBlurUpdate={handleTransitionalGoalChange} 
-                                required={true} 
-                            />
+                            <InputField label="Current State Summary" id="current-state" name="current" rows={3} value={strategyData.transitionalGoal.current} onChange={handleTransitionalGoalChange} required={true} />
+                            <InputField label="Potential State Summary" id="potential-state" name="potential" rows={3} value={strategyData.transitionalGoal.potential} onChange={handleTransitionalGoalChange} required={true} />
+                            <InputField label="Distinguish your Position in Change (Where are you now on the path?)" id="position-in-change" name="position" rows={1} value={strategyData.transitionalGoal.position} onChange={handleTransitionalGoalChange} required={true} />
                         </StrategySection>
 
                         <h2 className="text-xl font-bold text-gray-700 mb-4 mt-8">2. Steps & Actions Across Four Domains</h2>
                         
                         {domainKeys.map((domainKey) => {
                             const domain = strategyData.domains[domainKey];
-                            const updateDomainField = (e) => handleDomainChange(domainKey, e.target.name, e.target.value);
                             return (
-                                <StrategySection key={domainKey} title={`Domain: ${domain.domainTitle}`}>
-                                    <InputWithLocalState label="Step Title (A S.M.A.R.T. Goal)" id={`${domainKey}-title`} name="title" 
-                                        value={domain.title} 
-                                        onBlurUpdate={updateDomainField} 
-                                        required={true} 
-                                    />
-                                    <InputWithLocalState label="Define Success (What does achievement look like?)" id={`${domainKey}-success`} name="successDefinition" 
-                                        value={domain.successDefinition} 
-                                        onBlurUpdate={updateDomainField} 
-                                        required={true} 
-                                    />
-                                    <InputWithLocalState label="Imagine how this will be experienced, use your senses" id={`${domainKey}-imagine`} name="experienceImagined" rows={2} 
-                                        value={domain.experienceImagined} 
-                                        onBlurUpdate={updateDomainField} 
-                                        required={true} 
-                                    />
-                                    <InputWithLocalState label="What effects will this have on yourself and others?" id={`${domainKey}-effects`} name="effects" rows={2} 
-                                        value={domain.effects} 
-                                        onBlurUpdate={updateDomainField} 
-                                    />
+                                <StrategySection 
+                                    key={domainKey} 
+                                    title={`Domain: ${domain.domainTitle}`}
+                                    id={`domain-${slugify(domainKey)}`}
+                                    ref={el => domainRefs.current[domainKey] = el}
+                                >
+                                    <InputField label="Step Title (A S.M.A.R.T. Goal)" id={`${domainKey}-title`} name="title" value={domain.title} onChange={(e) => handleDomainChange(domainKey, 'title', e.target.value)} required={true} />
+                                    <InputField label="Define Success (What does achievement look like?)" id={`${domainKey}-success`} name="successDefinition" value={domain.successDefinition} onChange={(e) => handleDomainChange(domainKey, 'successDefinition', e.target.value)} required={true} />
+                                    <InputField label="Imagine how this will be experienced, use your senses" id={`${domainKey}-imagine`} name="experienceImagined" rows={2} value={domain.experienceImagined} onChange={(e) => handleDomainChange(domainKey, 'experienceImagined', e.target.value)} required={true} />
+                                    <InputField label="What effects will this have on yourself and others?" id={`${domainKey}-effects`} name="effects" rows={2} value={domain.effects} onChange={(e) => handleDomainChange(domainKey, 'effects', e.target.value)} />
 
                                     <h4 className="font-semibold text-md text-blue-700 mt-6 mb-3 border-b pb-2">Define 3 Specific Actions</h4>
 
-                                    {domain.actions.map((action, index) => {
-                                        const updateActionField = (subField) => (e) => handleDomainChange(domainKey, 'actions', e.target.value, action.id, subField);
-                                        return (
-                                            <div key={action.id} className="bg-gray-50 p-4 rounded-lg mb-4 border border-gray-200">
-                                                <h5 className="font-bold text-gray-800 mb-3">Action {index + 1}.</h5>
-                                                <InputWithLocalState label="Action Summary (Task, Who's involved, Duration, etc.)" id={`${domainKey}-action-${index}-summary`} rows={3} 
-                                                    value={action.summary} 
-                                                    onBlurUpdate={updateActionField('summary')} 
-                                                    required={index === 0 ? true : false} 
-                                                />
-                                                <h6 className="font-medium text-sm text-gray-600 mt-4 mb-2">List predictions on how you think you will go:</h6>
-                                                <InputWithLocalState label="What will be easy?" id={`${domainKey}-action-${index}-easy`} rows={1} 
-                                                    value={action.easy} 
-                                                    onBlurUpdate={updateActionField('easy')} 
-                                                />
-                                                <InputWithLocalState label="What will be hard?" id={`${domainKey}-action-${index}-hard`} rows={1} 
-                                                    value={action.hard} 
-                                                    onBlurUpdate={updateActionField('hard')} 
-                                                />
-                                                <InputWithLocalState label="Are there any helpful actions?" id={`${domainKey}-action-${index}-helpful`} rows={1} 
-                                                    value={action.helpful} 
-                                                    onBlurUpdate={updateActionField('helpful')} 
-                                                />
-                                            </div>
-                                        );
-                                    })}
+                                    {domain.actions.map((action, index) => (
+                                        <div key={action.id} className="bg-gray-50 p-4 rounded-lg mb-4 border border-gray-200">
+                                            <h5 className="font-bold text-gray-800 mb-3">Action {index + 1}.</h5>
+                                            <InputField label="Action Summary (Task, Who's involved, Duration, etc.)" id={`${domainKey}-action-${index}-summary`} rows={3} value={action.summary} onChange={(e) => handleDomainChange(domainKey, 'actions', e.target.value, action.id, 'summary')} required={index === 0 ? true : false} />
+                                            <h6 className="font-medium text-sm text-gray-600 mt-4 mb-2">List predictions on how you think you will go:</h6>
+                                            <InputField label="What will be easy?" id={`${domainKey}-action-${index}-easy`} rows={1} value={action.easy} onChange={(e) => handleDomainChange(domainKey, 'actions', e.target.value, action.id, 'easy')} />
+                                            <InputField label="What will be hard?" id={`${domainKey}-action-${index}-hard`} rows={1} value={action.hard} onChange={(e) => handleDomainChange(domainKey, 'actions', e.target.value, action.id, 'hard')} />
+                                            <InputField label="Are there any helpful actions?" id={`${domainKey}-action-${index}-helpful`} rows={1} value={action.helpful} onChange={(e) => handleDomainChange(domainKey, 'actions', e.target.value, action.id, 'helpful')} />
+                                        </div>
+                                    ))}
                                     
                                     <DomainChecklist 
                                         domainKey={domainKey} 
@@ -708,13 +842,13 @@
                             </p>
 
                             <h3 className="text-lg font-semibold mb-3 mt-4">Structured Weekly Reflection</h3>
-                            <InputWithLocalState
+                            <InputField 
                                 label="Reflect on your week's progress and insights across all domains." 
                                 id="weekly-reflection" 
                                 name="weeklyReflection" 
                                 rows={8} 
                                 value={strategyData.monitoring.weeklyReflection} 
-                                onBlurUpdate={handleMonitoringReflectionChange} 
+                                onChange={handleMonitoringReflectionChange} 
                                 placeholder={reflectionPlaceholder}
                             />
                         </div>
@@ -746,5 +880,32 @@
                 </div>
             );
         };
-        // Note: The App component is rendered via the auth.onAuthStateChanged listener
-</script>
+
+        // --- FINAL RENDER CALL (CRITICAL) ---
+        // This is the last step that tells React to take the App component and put it inside the <div id="root">
+        if (typeof firebase !== 'undefined' && firebase.auth) {
+            // When authentication state changes, re-render the application
+            // This ensures the application displays the AuthScreen when logged out, or the App when logged in.
+            firebase.auth().onAuthStateChanged((user) => {
+                const rootElement = document.getElementById('root');
+                if (rootElement) {
+                    ReactDOM.render(<App />, rootElement);
+                }
+            });
+        } else {
+             // FALLBACK for when Firebase fails to load (should show a visible error now instead of blank)
+            const rootElement = document.getElementById('root');
+            if (rootElement) {
+                 // Render a simple error message if React is running but Firebase is not found
+                 ReactDOM.render(
+                    <div style={{ padding: '50px', textAlign: 'center', color: '#B91C1C', backgroundColor: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '8px' }}>
+                        <h1>Initialization Error</h1>
+                        <p>The core application scripts (Firebase/Authentication) failed to load. Please check your network connection or the external script links in the HTML header.</p>
+                    </div>,
+                    rootElement
+                );
+            }
+        }
+    </script>
+</body>
+</html>
