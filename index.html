@@ -12,192 +12,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WISE WHALE Strategy Builder</title>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <style>
-        /* BASE READABILITY IMPROVEMENTS */
-        body {
-            /* Increase base font size from default 14px to 16px (text-base in Tailwind) */
-            /* Increase line height from default to slightly looser for better readability */
-            line-height: 1.6; 
-        }
-
-        /* Specific style for Input Fields and Textareas */
-        .input-text {
-            font-size: 1rem; /* Base 16px */
-        }
-        
-        /* Custom styles for better visual separation */
-        .domain-checklist-wrapper {
-            background-color: #f7f9fc; /* Light blue-gray for separation */
-            border-top: 1px solid #e0e6ed;
-            padding-top: 1rem;
-            margin-top: 1rem;
-            border-radius: 0 0 0.5rem 0.5rem;
-        }
-        /* Custom style for the circular satisfaction rating */
-        .satisfaction-dot {
-            width: 1.5rem;
-            height: 1.5rem;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            border: 2px solid;
-            cursor: pointer;
-        }
-        /* Fixed Footer styling for branding */
-        footer {
-            background-color: #2c3e50; /* Dark blue/gray */
-            color: #ecf0f1;
-            padding: 1rem 0;
-            text-align: center;
-            margin-top: 2rem;
-            font-size: 0.8rem;
-        }
-        /* Style for the Guidance Box to increase text size and line height */
-        .guidance-box-text {
-            font-size: 1.0rem; /* Slightly larger text */
-            line-height: 1.75; /* Increased line spacing */
-        }
-    </style>
+	<meta charset="UTF-8">
+	<title>untitled</title>
 </head>
-<body class="bg-gray-100">
 
-    <header class="bg-blue-800 text-white p-4 shadow-lg sticky top-0 z-10">
-        <div class="max-w-4xl mx-auto flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <span role="img" aria-label="Whale logo" class="text-3xl">🐳</span>
-                <h1 class="text-xl font-extrabold tracking-wider">WISE WHALE PSYCHOTHERAPY</h1>
-            </div>
-            <p class="hidden sm:block text-sm">Strategy Builder</p>
-        </div>
-    </header>
-
-    <div id="auth-container" class="min-h-screen p-4 md:p-8 flex justify-center items-start">
-        <div id="auth-ui" class="w-full max-w-sm pt-20" style="display: block;">
-            <div class="p-8 bg-white rounded-xl shadow-lg border border-gray-200 text-center">
-                <h2 class="text-2xl font-bold text-blue-800 mb-4">Secure Strategy Access</h2>
-                <p class="text-gray-600 mb-6">Sign in or create an account to manage your strategy.</p>
-                
-                <input type="email" id="email-input" placeholder="Email" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 mb-3" />
-                <input type="password" id="password-input" placeholder="Password" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 mb-4" />
-                
-                <button onclick="handleAuth(true)" class="w-full py-3 text-white font-bold bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-md mb-2">Sign Up</button>
-                <button onclick="handleAuth(false)" class="w-full py-3 text-white font-bold bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-md">Sign In</button>
-                
-                <p id="auth-message" class="text-red-500 text-sm mt-3"></p>
-            </div>
-        </div>
-
-        <div id="root" style="display: none;"></div>
-    </div>
-    <footer>
-        <div class="max-w-4xl mx-auto space-y-1">
-            <p class="font-bold">WISE WHALE PSYCHOTHERAPY</p>
-            <p>Southport, Gold Coast, Queensland 4215</p>
-            <p>Email: connect@wisewhalepsychotherapy.com</p>
-            <p class="pt-2">Copyright &copy; WISE WHALE PSYCHOTHERAPY 2025</p>
-        </div>
-    </footer>
-
-    <script>
-    // 🐳 START: FIREBASE CONFIGURATION AND AUTH LOGIC 🐳
-
-    // Your web app's Firebase configuration (from your project)
-    const firebaseConfig = {
-      apiKey: "AIzaSyAVoe4aDzGI4TyoNZNhFAi22mc2iCqAXic",
-      authDomain: "cellular-axon-474111-r2.firebaseapp.com",
-      projectId: "cellular-axon-474111-r2",
-      storageBucket: "cellular-axon-474111-r2.firebasestorage.app",
-      messagingSenderId: "745585089161",
-      appId: "1:745585089161:web:d047e8e8bcf848b1b60458",
-      measurementId: "G-ZG0X4FWBPX"
-    };
-
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    
-    const authUI = document.getElementById('auth-ui');
-    const appRoot = document.getElementById('root');
-    const authMessage = document.getElementById('auth-message');
-
-    function displayAuthError(message) {
-        authMessage.innerText = message;
-    }
-
-    // Function to handle Sign Up (isNewUser = true) or Sign In (isNewUser = false)
-    function handleAuth(isNewUser) {
-        displayAuthError(''); // Clear previous error
-        const email = document.getElementById('email-input').value;
-        const password = document.getElementById('password-input').value;
-
-        if (isNewUser) {
-            auth.createUserWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    alert('Account created successfully! Welcome!');
-                    // OPTIONAL: Uncomment this later to enforce verification
-                    // userCredential.user.sendEmailVerification();
-                })
-                .catch((error) => {
-                    displayAuthError('Sign Up Error: ' + error.message);
-                });
-        } else {
-            auth.signInWithEmailAndPassword(email, password)
-                .then(() => {
-                    // Sign in successful - onAuthStateChanged handles UI change
-                })
-                .catch((error) => {
-                    displayAuthError('Sign In Error: ' + error.message);
-                });
-        }
-    }
-
-    // Function to handle sign out (called from within the React App)
-    function signOutUser() {
-        auth.signOut().catch((error) => {
-            alert('Sign Out Error: ' + error.message);
-        });
-    }
-
-    // Critical: Monitor authentication state and control UI visibility
-    auth.onAuthStateChanged(function(user) {
-        if (user) {
-            // User is signed in. SHOW app content, HIDE login form.
-            appRoot.style.display = 'block';
-            authUI.style.display = 'none';
-            console.log("User logged in:", user.email);
-            
-            // Re-render the app when the user logs in
-            if (!document.getElementById('root').hasChildNodes()) {
-                 // Check if ReactDOM is defined before rendering
-                if (window.ReactDOM) {
-                    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
-                }
-            }
-        } else {
-            // User is signed out. HIDE app content, SHOW login form.
-            appRoot.style.display = 'none';
-            authUI.style.display = 'block';
-            console.log("User logged out.");
-        }
-    });
-
-    // 🐳 END: FIREBASE CONFIGURATION AND AUTH LOGIC 🐳
-    </script>
-    
-    <script type="text/babel">
-        const { useState, useEffect, useCallback, useMemo } = React;
+<body>
+	
+</body>
+</html>
+<script type="text/babel">
+        const { useState, useEffect, useCallback, useMemo, useRef } = React;
 
         // --- Data Structure for All Four Categories ---
         const STRATEGY_CONTENT = {
@@ -252,6 +76,9 @@
             }
         });
 
+        // Utility function to convert domain title to a safe ID (e.g., 'Physical Flow' -> 'physicalflow')
+        const slugify = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, '');
+
         // --- Local Storage Hooks ---
         const useLocalStorage = (key, initialValue) => {
             const [storedValue, setStoredValue] = useState(() => {
@@ -276,7 +103,15 @@
                                 },
                             ])
                         );
-                        return { ...getInitialStrategyState(), ...parsedItem, domains: mergedDomains };
+                        // Ensure transitionalGoal structure exists if loading very old data
+                        const mergedTransitionalGoal = { ...getInitialStrategyState().transitionalGoal, ...(parsedItem.transitionalGoal || {}) };
+
+                        return { 
+                            ...getInitialStrategyState(), 
+                            ...parsedItem, 
+                            domains: mergedDomains,
+                            transitionalGoal: mergedTransitionalGoal // Explicitly merge to preserve data
+                        };
                     }
                     return initialValue;
                 } catch (error) {
@@ -298,10 +133,26 @@
         };
 
         // --- Component for Accordion/Expandable Section ---
-        const StrategySection = ({ title, children, defaultOpen = false }) => {
+        const StrategySection = ({ title, children, defaultOpen = false, id }) => {
             const [isOpen, setIsOpen] = useState(defaultOpen);
+            // Use useRef to give this component a reference for scrolling
+            const sectionRef = useRef(null); 
+
+            // Expose the open/scroll function
+            React.useImperativeHandle(sectionRef, () => ({
+                openAndScroll: () => {
+                    setIsOpen(true);
+                    // Slight delay to ensure accordion animation is complete before scrolling
+                    setTimeout(() => {
+                        if (sectionRef.current) {
+                            sectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }, 50); 
+                }
+            }));
+
             return (
-                <div className="border border-gray-200 rounded-xl mb-4 bg-white shadow-sm">
+                <div id={id} ref={sectionRef} className="border border-gray-200 rounded-xl mb-4 bg-white shadow-sm pt-2" style={{ scrollMarginTop: '80px' }}>
                     <button
                         className="w-full p-4 flex justify-between items-center text-left font-semibold text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors rounded-t-xl"
                         onClick={() => setIsOpen(!isOpen)}
@@ -453,27 +304,47 @@
             // State for the strategy data, using Local Storage
             const [strategyData, setStrategyData] = useLocalStorage(LOCAL_STORAGE_KEY, getInitialStrategyState());
             const [focusCategory, setFocusCategory] = useState('Physical Flow'); // Default focus
+            
+            // Ref object to store references to all domain sections
+            const domainRefs = useRef({}); 
+
+            // Function to set the focus category and scroll to the section
+            const handleCategoryClick = useCallback((categoryTitle) => {
+                setFocusCategory(categoryTitle);
+                
+                // Find the associated domain key (e.g., 'physicalFlow')
+                const domainKey = domainKeys.find(key => STRATEGY_CONTENT[categoryTitle].title === strategyData.domains[key].domainTitle);
+                
+                // Check if the ref exists and call the exposed function to scroll/open it
+                if (domainKey && domainRefs.current[domainKey]) {
+                    domainRefs.current[domainKey].openAndScroll();
+                } else {
+                    // Fallback scroll to top if ref isn't ready
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            }, [strategyData.domains]); // Depend on domains just in case structure changes
 
             // Check if there is existing data and skip 'welcome' screen
             useEffect(() => {
-                if (strategyData && strategyData.profile.name && stage === 'welcome') {
+                // Check if profile name is set AND we are on the welcome screen
+                if (strategyData.profile.name && stage === 'welcome') {
                     setStage('form'); // Skip welcome if profile is filled
                 }
-            }, []); 
+            }, [stage, strategyData.profile.name]); // Depend on profile.name to catch persistence after sign-in
             
             const currentContent = STRATEGY_CONTENT[focusCategory];
             const domainKeys = Object.keys(strategyData.domains);
 
-            // HANDLERS (Generic helpers - these don't cause the profile keyboard issue)
+            // HANDLERS (Generic helpers)
 
-            // Generic input handler for Transitional Goal (Stage: 'form' - Step 1)
-            const handleTransitionalGoalChange = (e) => {
+            // Handler for Transitional Goal (Stage: 'form' - Step 1)
+            const handleTransitionalGoalChange = useCallback((e) => {
                 const { name, value } = e.target;
                 setStrategyData(prev => ({
                     ...prev,
                     transitionalGoal: { ...prev.transitionalGoal, [name]: value }
                 }));
-            };
+            }, [setStrategyData]); 
 
             // Generic handler for nested domain fields (Stage: 'form' - Step 2)
             const handleDomainChange = useCallback((domainKey, field, value, actionId = null, subField = null) => {
@@ -494,7 +365,7 @@
                     
                     return { ...prev, domains: newDomains };
                 });
-            }, []);
+            }, [setStrategyData]);
 
             // Handler for Domain-Specific Daily Checklists
             const handleMonitoringChecklistChange = useCallback((domainKey, dayOrMetric) => {
@@ -509,7 +380,7 @@
                     
                     return { ...prev, domains: newDomains };
                 });
-            }, []);
+            }, [setStrategyData]);
 
             // Handler for Domain-Specific Satisfaction Rating
             const handleSatisfactionRating = useCallback((domainKey, rating) => {
@@ -527,15 +398,15 @@
                     
                     return { ...prev, domains: newDomains };
                 });
-            }, []);
+            }, [setStrategyData]);
 
             // Handler for Monitoring Reflection (Stage: 'form' - Step 3)
-            const handleMonitoringReflectionChange = (e) => {
+            const handleMonitoringReflectionChange = useCallback((e) => {
                 setStrategyData(prev => ({
                     ...prev,
                     monitoring: { ...prev.monitoring, weeklyReflection: e.target.value }
                 }));
-            };
+            }, [setStrategyData]);
             
             // Generate the structured placeholder for the journal
             const reflectionPlaceholder = `Action 1: [Reflect on what happened, feelings, results, and what was learned]\n\nAction 2: [...]\n\nAction 3: [...]`;
@@ -598,7 +469,7 @@
                     </button>
                     <button 
                         onClick={window.signOutUser}
-                        className="py-3 px-4 text-sm font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors mt-4"
+                        className="py-3 px-4 text-sm font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors mt-4 ml-4"
                     >
                         Log Out
                     </button>
@@ -607,7 +478,7 @@
 
             // --- PROFILE SCREEN COMPONENT (STAGE 2) ---
             const ProfileScreen = () => {
-                // FIX: Use local state for profile data until submission to prevent global re-render on every keystroke
+                // Use local state for profile data until submission to prevent global re-render on every keystroke
                 const [localProfile, setLocalProfile] = useState(strategyData.profile);
                 
                 // Keep the global state updated on a delay or on button click
@@ -700,20 +571,35 @@
                             <h1 className="text-3xl font-extrabold text-blue-800">Goal Guidance 🌊</h1>
                             <p className="text-gray-500 mt-1 font-medium">Stage 3 of 3 | Strategy: {strategyData.profile.theme}</p>
                             
-                            <div className="mt-4 flex flex-wrap justify-center gap-2">
-                                {Object.keys(STRATEGY_CONTENT).map(cat => (
-                                    <button 
-                                        key={cat} 
-                                        onClick={() => setFocusCategory(cat)}
-                                        className={`px-3 py-1 text-sm rounded-full transition-all ${
-                                            cat === focusCategory ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
-                                        }`}
-                                    >
-                                        {STRATEGY_CONTENT[cat].title}
-                                    </button>
-                                ))}
+                            <div className="flex justify-between items-center mt-4 mb-4">
+                                <button 
+                                    onClick={() => setStage('welcome')}
+                                    className="py-2 px-4 text-sm font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                                >
+                                    ← Back to Overview
+                                </button>
+                                <div className="flex flex-wrap justify-center gap-2">
+                                    {Object.keys(STRATEGY_CONTENT).map(cat => (
+                                        <button 
+                                            key={cat} 
+                                            // **UPDATED**: Call handleCategoryClick to set focus AND scroll
+                                            onClick={() => handleCategoryClick(cat)}
+                                            className={`px-3 py-1 text-sm rounded-full transition-all ${
+                                                cat === focusCategory ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+                                            }`}
+                                        >
+                                            {STRATEGY_CONTENT[cat].title}
+                                        </button>
+                                    ))}
+                                </div>
+                                <button 
+                                    onClick={window.signOutUser}
+                                    className="py-2 px-4 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors shadow-md"
+                                >
+                                    Log Out
+                                </button>
                             </div>
-                        </header>
+                            </header>
 
                         <ProgressBar strategyData={strategyData} />
 
@@ -736,7 +622,14 @@
                         {domainKeys.map((domainKey) => {
                             const domain = strategyData.domains[domainKey];
                             return (
-                                <StrategySection key={domainKey} title={`Domain: ${domain.domainTitle}`}>
+                                <StrategySection 
+                                    key={domainKey} 
+                                    title={`Domain: ${domain.domainTitle}`}
+                                    // **UPDATED**: Set the unique ID using slugify for reliable targeting
+                                    id={`domain-${slugify(domainKey)}`}
+                                    // **UPDATED**: Attach the ref to this component instance
+                                    ref={el => domainRefs.current[domainKey] = el}
+                                >
                                     <InputField label="Step Title (A S.M.A.R.T. Goal)" id={`${domainKey}-title`} name="title" value={domain.title} onChange={(e) => handleDomainChange(domainKey, 'title', e.target.value)} required={true} />
                                     <InputField label="Define Success (What does achievement look like?)" id={`${domainKey}-success`} name="successDefinition" value={domain.successDefinition} onChange={(e) => handleDomainChange(domainKey, 'successDefinition', e.target.value)} required={true} />
                                     <InputField label="Imagine how this will be experienced, use your senses" id={`${domainKey}-imagine`} name="experienceImagined" rows={2} value={domain.experienceImagined} onChange={(e) => handleDomainChange(domainKey, 'experienceImagined', e.target.value)} required={true} />
@@ -814,10 +707,5 @@
                 </div>
             );
         };
-
         // Note: The App component is rendered via the auth.onAuthStateChanged listener
-        // This ensures the App only initializes and displays once the user is logged in.
-
-    </script>
-</body>
-</html>
+</script>
