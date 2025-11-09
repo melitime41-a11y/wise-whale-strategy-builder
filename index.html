@@ -909,38 +909,40 @@
                 );
             }
         }
-    </script>
-	<script>
-    // Only run this fix on iOS devices
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    
-    if (isIOS) {
-        let originalScrollTop = 0;
-        
-        document.addEventListener('focusin', (e) => {
-            // Check if the focused element is an input or textarea
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-                // Save the current scroll position before the keyboard appears
-                originalScrollTop = window.scrollY;
-                
-                // Immediately fix the body position to prevent jiggle/bounce
-                document.body.style.position = 'fixed';
-                document.body.style.top = `-${originalScrollTop}px`;
-            }
-        });
+    </script>  
+	<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* General body styling for a clean background */
+        body {
+            background-color: #f4f7f9; /* Light gray/blue background */
+        }
+        /* Style for the satisfaction rating dots */
+        .satisfaction-dot {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid #D1D5DB;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
 
-        document.addEventListener('focusout', (e) => {
-            // Check if the blurred element was an input or textarea
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-                // Restore the body position
-                document.body.style.position = '';
-                document.body.style.top = '';
-                
-                // Force scroll back to the original position
-                window.scrollTo(0, originalScrollTop);
-            }
-        });
-    }
-</script>
+        /* --- CRITICAL FIX FOR FIREBASE SIGN-IN KEYBOARD DROP/JUMP --- */
+        /* Prevents the entire Firebase UI container from recalculating layout when the keyboard opens */
+        .firebaseui-container {
+            height: 100vh !important; /* Force container to be full viewport height */
+            overflow-y: hidden; /* Prevent scrolling inside the container */
+        }
+
+        /* Ensures the inner wrapper element can scroll if needed */
+        .firebaseui-id-page-callback, .firebaseui-id-page-sign-in {
+            height: 100%;
+            overflow-y: auto; /* Allow scrolling inside the form content */
+        }
+    </style> 
+    </head>
 </body>
 </html>
