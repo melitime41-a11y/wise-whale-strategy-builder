@@ -1,14 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<title>untitled</title>
-</head>
 
-<body>
-	
-</body>
-</html>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,6 +7,7 @@
     <title>Strategy Builder: Wise Whale Psychotherapy</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <style>
         /* General body styling for a clean background */
         body {
@@ -34,12 +25,24 @@
             cursor: pointer;
             transition: all 0.2s;
         }
+
+        /* --- CRITICAL FIX FOR FIREBASE SIGN-IN KEYBOARD DROP --- */
+        /* Prevents the entire Firebase UI container from recalculating layout when the keyboard opens */
+        .firebaseui-container {
+            height: 100vh !important;
+            overflow-y: hidden;
+        }
+
+        /* Ensures the inner wrapper element can scroll if needed */
+        .firebaseui-id-page-callback, .firebaseui-id-page-sign-in {
+            height: 100%;
+            overflow-y: auto;
+        }
     </style>
 
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 
@@ -62,6 +65,8 @@
         window.signOutUser = () => {
             auth.signOut().then(() => {
                 console.log("User signed out.");
+                // After sign out, force a redirect or state reset to ensure clean sign-in screen reload
+                // Note: The onAuthStateChanged listener in React will also handle the UI change
             }).catch((error) => {
                 console.error("Error signing out:", error);
             });
@@ -279,7 +284,7 @@
                                         className="satisfaction-dot"
                                         style={{
                                             borderColor: checklist.satisfactionRating >= rating ? '#10B981' : '#D1D5DB',
-                                            backgroundColor: checklist.satisfationRating >= rating ? '#10B981' : 'white',
+                                            backgroundColor: checklist.satisfactionRating >= rating ? '#10B981' : 'white',
                                         }}
                                         onClick={() => handleSatisfactionRating(domainKey, rating)}
                                         title={`Satisfaction Level ${rating}`}
@@ -725,7 +730,7 @@
                 return <div className="p-8 text-center text-red-500">Error: Focus category "{focusCategory}" not found.</div>;
             }
 
-            // --- RENDER BASED ON STAGE (REPEATING ORIGINAL LOGIC FOR COMPLETENESS) ---
+            // --- RENDER BASED ON STAGE ---
             let content;
             if (stage === 'welcome') {
                 content = (
@@ -749,10 +754,9 @@
                             
                             <div className="flex justify-between items-center mt-4 mb-4">
                                 <button 
-                                    onClick={() => setStage('welcome')}
-                                    className="py-2 px-4 text-sm font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                                    onClick={() => setStage('profile')} className="py-2 px-4 text-sm font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
                                 >
-                                    ← Back to Overview
+                                    ← Back to Profile
                                 </button>
                                 <div className="flex flex-wrap justify-center gap-2">
                                     {Object.keys(STRATEGY_CONTENT).map(cat => (
