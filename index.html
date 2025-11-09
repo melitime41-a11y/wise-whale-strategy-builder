@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -911,5 +910,37 @@
             }
         }
     </script>
+	<script>
+    // Only run this fix on iOS devices
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    
+    if (isIOS) {
+        let originalScrollTop = 0;
+        
+        document.addEventListener('focusin', (e) => {
+            // Check if the focused element is an input or textarea
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                // Save the current scroll position before the keyboard appears
+                originalScrollTop = window.scrollY;
+                
+                // Immediately fix the body position to prevent jiggle/bounce
+                document.body.style.position = 'fixed';
+                document.body.style.top = `-${originalScrollTop}px`;
+            }
+        });
+
+        document.addEventListener('focusout', (e) => {
+            // Check if the blurred element was an input or textarea
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                // Restore the body position
+                document.body.style.position = '';
+                document.body.style.top = '';
+                
+                // Force scroll back to the original position
+                window.scrollTo(0, originalScrollTop);
+            }
+        });
+    }
+</script>
 </body>
 </html>
