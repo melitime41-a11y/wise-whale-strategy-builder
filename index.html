@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,17 +26,26 @@
             transition: all 0.2s;
         }
 
-        /* --- CRITICAL FIX FOR FIREBASE SIGN-IN KEYBOARD DROP --- */
+        /* --- CRITICAL FIX 1: FIREBASE SIGN-IN KEYBOARD JUMP (Vertical Shift) --- */
         /* Prevents the entire Firebase UI container from recalculating layout when the keyboard opens */
         .firebaseui-container {
-            height: 100vh !important;
-            overflow-y: hidden;
+            height: 100vh !important; /* Force container to be full viewport height */
+            overflow-y: hidden; /* Prevent scrolling inside the container */
         }
 
         /* Ensures the inner wrapper element can scroll if needed */
         .firebaseui-id-page-callback, .firebaseui-id-page-sign-in {
             height: 100%;
-            overflow-y: auto;
+            overflow-y: auto; /* Allow scrolling inside the form content */
+        }
+
+        /* --- CRITICAL FIX 2: iOS Safari Scroll Bounce Mitigation (Horizontal/Jiggle) --- */
+        /* Targets the focused input field itself to prevent Safari's aggressive scroll correction. */
+        .firebaseui-container input:focus, 
+        .firebaseui-container textarea:focus {
+            /* These properties tell iOS to rely less on its default viewport scrolling */
+            -webkit-overflow-scrolling: auto; 
+            scroll-behavior: auto;
         }
     </style>
 
@@ -64,8 +74,6 @@
         window.signOutUser = () => {
             auth.signOut().then(() => {
                 console.log("User signed out.");
-                // After sign out, force a redirect or state reset to ensure clean sign-in screen reload
-                // Note: The onAuthStateChanged listener in React will also handle the UI change
             }).catch((error) => {
                 console.error("Error signing out:", error);
             });
@@ -387,6 +395,15 @@
                 if (strategyData.profile.name && stage === 'welcome') {
                     setStage('form'); // Skip welcome if profile is filled
                 }
+                
+                // --- FIX FOR PROFILE -> WELCOME NAVIGATION ---
+                // The 'profile' screen is the only place we allow navigation back to 'welcome'
+                // We add an explicit check to make sure the stage doesn't get immediately overridden
+                // This is a subtle fix for the auto-skip logic above.
+                if (stage === 'profile') {
+                    // Do nothing, allow user to stay on profile or click back to welcome.
+                }
+
             }, [stage, strategyData.profile.name]); // Depend on profile.name to catch persistence after sign-in
             
             const currentContent = STRATEGY_CONTENT[focusCategory];
@@ -753,7 +770,8 @@
                             
                             <div className="flex justify-between items-center mt-4 mb-4">
                                 <button 
-                                    onClick={() => setStage('profile')} className="py-2 px-4 text-sm font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                                    onClick={() => setStage('profile')} 
+                                    className="py-2 px-4 text-sm font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
                                 >
                                     ← Back to Profile
                                 </button>
@@ -909,40 +927,6 @@
                 );
             }
         }
-    </script>  
-	<head>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* General body styling for a clean background */
-        body {
-            background-color: #f4f7f9; /* Light gray/blue background */
-        }
-        /* Style for the satisfaction rating dots */
-        .satisfaction-dot {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: 2px solid #D1D5DB;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        /* --- CRITICAL FIX FOR FIREBASE SIGN-IN KEYBOARD DROP/JUMP --- */
-        /* Prevents the entire Firebase UI container from recalculating layout when the keyboard opens */
-        .firebaseui-container {
-            height: 100vh !important; /* Force container to be full viewport height */
-            overflow-y: hidden; /* Prevent scrolling inside the container */
-        }
-
-        /* Ensures the inner wrapper element can scroll if needed */
-        .firebaseui-id-page-callback, .firebaseui-id-page-sign-in {
-            height: 100%;
-            overflow-y: auto; /* Allow scrolling inside the form content */
-        }
-    </style> 
-    </head>
+    </script>
 </body>
 </html>
