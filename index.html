@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,7 +12,7 @@
         body {
             background-color: #f4f7f9; /* Light gray/blue background */
         }
-        /* Style for the satisfaction rating dots */
+        /* Style for the satisfaction rating dots (Kept for future use) */
         .satisfaction-dot {
             width: 30px;
             height: 30px;
@@ -26,37 +25,37 @@
             transition: all 0.2s;
         }
 
-        /* --- CRITICAL FIX 1: FIREBASE SIGN-IN KEYBOARD JUMP (Vertical Shift) --- */
-        /* Prevents the entire Firebase UI container from recalculating layout when the keyboard opens */
+        /* FIXES: Keyboard behavior on mobile */
         .firebaseui-container {
-            height: 100vh !important; /* Force container to be full viewport height */
-            overflow-y: hidden; /* Prevent scrolling inside the container */
+            height: 100vh !important;
+            overflow-y: hidden; 
         }
-
-        /* Ensures the inner wrapper element can scroll if needed */
         .firebaseui-id-page-callback, .firebaseui-id-page-sign-in {
             height: 100%;
-            overflow-y: auto; /* Allow scrolling inside the form content */
+            overflow-y: auto;
         }
-
-        /* --- CRITICAL FIX 2: iOS Safari Scroll Bounce Mitigation (Horizontal/Jiggle) --- */
-        /* Targets the focused input field itself to prevent Safari's aggressive scroll correction. */
         .firebaseui-container input:focus, 
         .firebaseui-container textarea:focus {
-            /* These properties tell iOS to rely less on its default viewport scrolling */
             -webkit-overflow-scrolling: auto; 
             scroll-behavior: auto;
         }
     </style>
 
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script> ```
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
-  <script>
+</head>
+<body>
+
+    <div id="root">
+        </div>
+    
+    <script>
         const firebaseConfig = {
           apiKey: "AIzaSyAVoe4aDzGI4TyoNZNhFAi22mc2iCqAXic",
           authDomain: "cellular-axon-474111-r2.firebaseapp.com",
@@ -71,34 +70,27 @@
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth(); // Auth must be initialized globally for the listener
         
-        // Global sign out function used by the React components
+        // Global sign out function is defined here, but also redefined in the Babel script for clarity.
         window.signOutUser = () => {
             auth.signOut().then(() => {
-                console.log("User signed out.");
+                console.log("User signed out from global function.");
             }).catch((error) => {
-                console.error("Error signing out:", error);
+                console.error("Error signing out from global function:", error);
             });
         };
     </script>
 	
-<script type="text/babel">
-       <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script> ```
-
-<script type="text/babel">
+    <script type="text/babel">
     const { useState, useEffect, useCallback, useMemo, useRef } = React;
 
     // --- NEW FIREBASE INITIALIZATION FOR DATA (Firestore) ---
     // This uses your existing global Firebase v8 configuration.
-    // It is critical that the firebase-firestore.js script is included in the HTML <head>.
     const db = typeof firebase !== 'undefined' && firebase.firestore ? firebase.firestore() : null;
     const auth = typeof firebase !== 'undefined' && firebase.auth ? firebase.auth() : null;
     
     // --- Firestore Constants ---
-    // This is the location where the main strategy/log is saved (document reference)
     const FULL_STRATEGY_DOC_PATH = 'fullStrategyData/userStrategy';
-    const FIREBASE_APP_ID = "1:745585089161:web:dcede471d4a7bfd5b60458"; // Matches your config
+    const FIREBASE_APP_ID = "1:745585089161:web:dcede471d4a7bfd5b60458"; 
     
     // --- Business Details (Keep consistent) ---
     const BUSINESS_DETAILS = {
@@ -1009,17 +1001,6 @@
         return <App initialUserId={user.uid} />;
     };
 
-    // Global sign out function used by the React components
-    window.signOutUser = () => {
-        if(auth) {
-            auth.signOut().then(() => {
-                console.log("User signed out.");
-            }).catch((error) => {
-                console.error("Error signing out:", error);
-            });
-        }
-    };
-
 
     // --- FINAL RENDER CALL (CRITICAL) ---
     if (typeof firebase !== 'undefined' && firebase.auth) {
@@ -1027,11 +1008,12 @@
         const renderApp = () => {
             const rootElement = document.getElementById('root');
             if (rootElement) {
+                // Using ReactDOM.render for compatibility with React 17 CDN links
                 ReactDOM.render(<AuthWrapper />, rootElement);
             }
         };
 
-        // Render immediately and again on auth state change (handled internally by AuthWrapper listener)
+        // Render immediately 
         renderApp();
     } else {
          // FALLBACK for when Firebase fails to load
@@ -1048,6 +1030,5 @@
     }
 </script>
 
-    </script>
 </body>
 </html>
