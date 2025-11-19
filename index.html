@@ -19,7 +19,7 @@
             height: 30px;
             border-radius: 50%;
             border: 2px solid #D1D5DB;
-            display: flex;
+            display: flex;  
             align-items: center;
             justify-content: center;
             cursor: pointer;
@@ -52,10 +52,11 @@
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script> ```
 
-    <script>
+  <script>
         const firebaseConfig = {
           apiKey: "AIzaSyAVoe4aDzGI4TyoNZNhFAi22mc2iCqAXic",
           authDomain: "cellular-axon-474111-r2.firebaseapp.com",
@@ -79,854 +80,974 @@
             });
         };
     </script>
+	
+<script type="text/babel">
+       <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script> ```
 
-</head>
-<body>
+<script type="text/babel">
+    const { useState, useEffect, useCallback, useMemo, useRef } = React;
+
+    // --- NEW FIREBASE INITIALIZATION FOR DATA (Firestore) ---
+    // This uses your existing global Firebase v8 configuration.
+    // It is critical that the firebase-firestore.js script is included in the HTML <head>.
+    const db = typeof firebase !== 'undefined' && firebase.firestore ? firebase.firestore() : null;
+    const auth = typeof firebase !== 'undefined' && firebase.auth ? firebase.auth() : null;
     
-    <div id="root"></div>
+    // --- Firestore Constants ---
+    // This is the location where the main strategy/log is saved (document reference)
+    const FULL_STRATEGY_DOC_PATH = 'fullStrategyData/userStrategy';
+    const FIREBASE_APP_ID = "1:745585089161:web:dcede471d4a7bfd5b60458"; // Matches your config
+    
+    // --- Business Details (Keep consistent) ---
+    const BUSINESS_DETAILS = {
+        name: "WISE WHALE PSYCHOTHERAPY",
+    };
+    
+    // --- Component Navigation States ---
+    const SCREENS = {
+        PROFILE_QUESTIONS: 'profileQuestions', 
+        GOAL_GUIDANCE: 'goalGuidance', 
+        STRATEGY_SUMMARY: 'strategySummary', 
+        FULL_STRATEGY_BUILDER: 'fullStrategyBuilder',
+    };
 
-    <script type="text/babel">
-        const { useState, useEffect, useCallback, useMemo, useRef } = React;
+    // --- Utility Components and Data Structures ---
+    
+    // Placeholder structure for Strategy Data (required for Summary screen)
+    const initialActionState = { summary: '', easy: '', hard: '', helpful: '' };
+    const STRATEGY_CONTENT = {
+        'Physical Flow': { title: 'Physical Flow' },
+        'Productive & Creative Currents': { title: 'Productive & Creative Currents' },
+        'Tidal Connections of Inter/Intrapersonal Relationships': { title: 'Tidal Connections of Inter/Intrapersonal Relationships' },
+        'Cognitive & Mental Depth & Agility': { title: 'Cognitive & Mental Depth & Agility' },
+    };
+    const initialDomainState = (title) => ({
+        domainTitle: title,
+        title: '', 
+        successDefinition: '', 
+        experienceImagined: '', 
+        effects: '',
+        actions: [
+            { ...initialActionState, id: 1 },
+            { ...initialActionState, id: 2 },
+            { ...initialActionState, id: 3 },
+        ],
+    });
+    
+    const getInitialStrategyState = () => ({
+        transitionalGoal: { current: '', potential: '', position: '' },
+        domains: {
+            physicalFlow: initialDomainState(STRATEGY_CONTENT['Physical Flow'].title),
+            productiveCreative: initialDomainState(STRATEGY_CONTENT['Productive & Creative Currents'].title),
+            tidalConnections: initialDomainState(STRATEGY_CONTENT['Tidal Connections of Inter/Intrapersonal Relationships'].title),
+            cognitiveMental: initialDomainState(STRATEGY_CONTENT['Cognitive & Mental Depth & Agility'].title),
+        },
+        monitoring: {
+            dailyChecklist: { sun: false, mon: false, tue: false, wed: false, thu: false, fri: false, sat: false, satisfied: false },
+            weeklyReflection: '',
+        }
+    });
 
-        // --- Data Structure for All Four Categories ---
-        const STRATEGY_CONTENT = {
-            'Physical Flow': {
-                prompt: 'This process is all about recognizing your potential and getting your subconscious and conscious minds on the same page. The framework is built on S.M.A.R.T. goals. We encourage your personality and style to list steps and actions you enjoy—less stressful and more rewarding. Remember, we\'re here as a sounding board and a listening ear to amplify the wise voice within you.',
-                title: 'Physical Flow',
-            },
-            'Productive & creative currents': {
-                prompt: 'Let’s shift our focus to a new category of your human function. Remember the process is all about recognizing your potential and getting your subconscious and conscious minds on the same page. Even simple enjoyable steps can bring a sense of accomplishment and help develop intentional, selective, focused attention. You\'ll soon be frolicking in new seas—maybe even breaching! If you’re not, put your hand up!',
-                title: 'Productive & Creative Currents',
-            },
-            'Tidal connections of inter/intrapersonal relationships': {
-                prompt: 'With kindest intentions to yourself and others— set healthy expectations and aim to develop the art of synchronising in the vast ocean with inner harmony. This process is all about recognizing your potential and getting your subconscious and conscious minds on the same page. Even simple enjoyable steps can bring a sense of accomplishment and help develop intentional, selective, focused attention. Keep up the attention to detail, you’re well on your way! If you need a chat, put your hand up!',
-                title: 'Tidal Connections of Inter/Intrapersonal Relationships',
-            },
-            'Cognitive & mental depth and agility': {
-                prompt: 'In this category recognizing your potential, can be harder to see, never fear that’s why Wise Whales Therapists are here. Let’s start with the next step you can see, defining the transitions you know you’d like to make. We can contribute psychoeducational knowledge to broaden your view of possible actions, suitable for getting your subconscious and conscious minds on the same page. If you want new outcomes, new approaches are all that you need. You’ve added those, keep going you must be almost done with the framework! The fun is near. If you’re treading for air, put your hand up. We’ll guide you to connect with your inner wise whale!',
-                title: 'Cognitive & Mental Depth and Agility',
-            },
-        };
+    const WiseWhaleLogo = () => (
+        <svg 
+            viewBox="0 0 100 100" 
+            className="w-16 h-16 mx-auto mb-4" 
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <defs>
+                <linearGradient id="whaleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style={{stopColor:'rgb(28, 126, 214)', stopOpacity:1}} />
+                    <stop offset="100%" style={{stopColor:'rgb(52, 211, 153)', stopOpacity:1}} />
+                </linearGradient>
+            </defs>
+            <g fill="url(#whaleGradient)">
+                <path d="M 30 50 C 35 40, 50 35, 60 40 C 65 45, 65 55, 60 60 C 50 65, 35 60, 30 50 Z" />
+                <circle cx="20" cy="50" r="5" />
+                <circle cx="30" cy="80" r="5" />
+                <circle cx="50" cy="90" r="5" />
+                <circle cx="70" cy="80" r="5" />
+                <circle cx="80" cy="50" r="5" />
+                <circle cx="70" cy="20" r="5" />
+                <circle cx="50" cy="10" r="5" />
+                <circle cx="30" cy="20" r="5" />
+                <path d="M 25 50 Q 40 50, 50 50 L 50 50 Q 60 50, 75 50" stroke="url(#whaleGradient)" strokeWidth="5" fill="none" strokeLinecap="round"/>
+                <path d="M 50 10 L 40 40 L 60 40 L 50 10" opacity="0.1"/> 
+                <path d="M 50 90 L 40 60 L 60 60 L 50 90" opacity="0.1"/> 
+            </g>
+        </svg>
+    );
 
-        // --- Initial State and Utility Functions ---
-        const LOCAL_STORAGE_KEY = 'wiseWhalesStrategyData';
-        const initialActionState = { summary: '', easy: '', hard: '', helpful: '' };
+    const InputField = ({ label, type = 'text', value, onChange, required, maxLength, placeholder, rows = 1, name }) => (
+        <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+            {rows > 1 ? (
+                <textarea
+                    name={name}
+                    rows={rows}
+                    value={value || ''}
+                    onChange={onChange}
+                    required={required}
+                    maxLength={maxLength}
+                    placeholder={placeholder}
+                    className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all resize-y"
+                />
+            ) : (
+                <input
+                    type={type}
+                    name={name}
+                    value={value || ''}
+                    onChange={onChange}
+                    required={required}
+                    maxLength={maxLength}
+                    placeholder={placeholder}
+                    className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all"
+                />
+            )}
+        </div>
+    );
+
+    const TextAreaField = (props) => <InputField {...props} rows={props.rows || 3} type="textarea" />;
+
+    // --- Screen Components (Profile, Guidance, Summary, Modal) ---
+
+    const profileQuestionsStructure = {
+        hotspots: [
+            { key: 'freshAir', label: 'Where do you go for fresh air and a fulfilling breath?' },
+            { key: 'sunlitPlaces', label: 'What are your favorite sunlit places in the morning, noon, and night?' },
+            { key: 'positiveRoutine', label: 'What positive routines or habits do you maintain consistently?' },
+            { key: 'emotionalSupport', label: 'Who or what provides you with genuine emotional support and safety?' },
+            { key: 'physicalActivity', label: 'What physical activity or movement brings you joy and energy?' },
+            { key: 'mindfulPractices', label: 'Which mindful practices (meditation, breathing, etc.) help you ground yourself?' },
+            { key: 'creativeOutlets', label: 'What creative outlets or hobbies allow you to express yourself freely?' },
+            { key: 'safeSpaces', label: 'Describe your most secure and comforting physical environment (safe space).' },
+            { key: 'selfCompassion', label: 'In what ways do you consistently show yourself kindness and self-compassion?' },
+            { key: 'meaningfulWork', label: 'What aspects of your work or daily tasks feel purposeful and meaningful?' },
+            { key: 'qualitySleep', label: 'What conditions help you achieve quality, restorative sleep?' },
+            { key: 'nutritiousFood', label: 'What types of nutritious foods do you prioritize for energy and well-being?' },
+            { key: 'natureConnection', label: 'How and where do you connect with nature or the outdoors?' },
+            { key: 'financialStability', label: 'What aspects of your financial situation provide you with stability and peace of mind?' },
+            { key: 'personalBoundaries', label: 'How do you successfully set and maintain healthy personal boundaries?' },
+            { key: 'learningGrowth', label: 'What new skills or knowledge are you actively pursuing for personal growth?' },
+            { key: 'spiritualPractices', label: 'Do you have any spiritual or philosophical practices that offer guidance and peace?' },
+            { key: 'playfulnessHumor', label: 'Where and when do you allow yourself to be playful and use humor?' },
+            { key: 'timeManagement', label: 'What strategies do you use that effectively help you manage your time and priorities?' },
+            { key: 'conflictResolution', label: 'How do you approach and successfully resolve interpersonal conflicts?' },
+            { key: 'gratitudePractices', label: 'In what form do you practice gratitude or appreciation regularly?' },
+            { key: 'restoredEnergy', label: 'What specific activity or person most reliably helps you restore depleted energy?' },
+        ],
+        coldspots: [
+            { key: 'gossip', label: 'Gossip' },
+            { key: 'deviceUse', label: 'Device use (excessive or mindless scrolling)' },
+            { key: 'procrastination', label: 'Procrastination or avoidance of necessary tasks' },
+            { key: 'negativeSelfTalk', label: 'Negative or highly critical self-talk' },
+            { key: 'socialWithdrawal', label: 'Excessive social withdrawal or isolation' },
+            { key: 'perfectionism', label: 'Paralyzing perfectionism or fear of failure' },
+            { key: 'comparisonTrap', label: 'Comparing yourself negatively to others (comparison trap)' },
+            { key: 'unhealthyFood', label: 'Consuming unhealthy food or excessive substances' },
+            { key: 'sleepDeprivation', label: 'Chronic sleep deprivation or inconsistent sleep schedule' },
+            { key: 'clutterDisorganization', label: 'Physical clutter or constant disorganization in your environment' },
+            { key: 'unclearBoundaries', label: 'Difficulty setting boundaries, leading to being overextended' },
+            { key: 'avoidingConflict', label: 'Avoiding necessary confrontation or conflict resolution' },
+            { key: 'financialStress', label: 'Chronic financial worry or impulse spending' },
+            { key: 'lackOfPurpose', label: 'Feeling a significant lack of direction or purpose' },
+            { key: 'overcommitment', label: 'Taking on too many responsibilities (overcommitment)' },
+            { key: 'rumination', label: 'Excessive rumination or worry about past events or the future' },
+        ]
+    };
+    
+    const ProfileQuestionsScreen = ({ userId, onNext }) => {
+        const initialState = { hotspots: {}, coldspots: {} };
+        profileQuestionsStructure.hotspots.forEach(q => initialState.hotspots[q.key] = '');
+        profileQuestionsStructure.coldspots.forEach(q => initialState.coldspots[q.key] = '');
         
-        // Checklist now includes satisfactionRating (1-5, or 0 for unset)
-        const initialDomainChecklist = { sun: false, mon: false, tue: false, wed: false, thu: false, fri: false, sat: false, satisfactionRating: 0 };
+        const [profileData, setProfileData] = useState(initialState);
+        const [isSaving, setIsSaving] = useState(false);
+        const [saveError, setSaveError] = useState(null);
 
-        const initialDomainState = (title) => ({
-            domainTitle: title,
-            title: '', successDefinition: '', positionInChange: '', experienceImagined: '', effects: '',
-            actions: [
-                { ...initialActionState, id: 1 },
-                { ...initialActionState, id: 2 },
-                { ...initialActionState, id: 3 },
-            ],
-            // Domain-specific checklist
-            dailyChecklist: { ...initialDomainChecklist }
-        });
-
-        const getInitialStrategyState = () => ({
-            profile: { name: '', date: new Date().toISOString().split('T')[0], theme: '' },
-            transitionalGoal: { current: '', potential: '', position: '' },
-            domains: {
-                physicalFlow: initialDomainState('Physical Flow'),
-                productiveCreative: initialDomainState('Productive & Creative Currents'),
-                tidalConnections: initialDomainState('Tidal Connections of Inter/Intrapersonal Relationships'),
-                cognitiveMental: initialDomainState('Cognitive & Mental Depth and Agility'),
-            },
-            monitoring: {
-                weeklyReflection: '',
-            }
-        });
-
-        // Utility function to convert domain title to a safe ID (e.g., 'Physical Flow' -> 'physicalflow')
-        const slugify = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, '');
-
-        // --- Local Storage Hooks ---
-        const useLocalStorage = (key, initialValue) => {
-            const [storedValue, setStoredValue] = useState(() => {
-                try {
-                    const item = window.localStorage.getItem(key);
-                    if (item) {
-                        const parsedItem = JSON.parse(item);
-                        // Ensure domains have the new satisfactionRating field if old data is loaded
-                        const mergedDomains = Object.fromEntries(
-                            Object.entries(parsedItem.domains || getInitialStrategyState().domains).map(([key, domain]) => [
-                                key,
-                                {
-                                    ...domain,
-                                    dailyChecklist: {
-                                        ...initialDomainChecklist,
-                                        ...domain.dailyChecklist,
-                                        // Handle transition from boolean 'satisfied' to number 'satisfactionRating'
-                                        satisfactionRating: domain.dailyChecklist && typeof domain.dailyChecklist.satisfied === 'boolean'
-                                            ? (domain.dailyChecklist.satisfied ? 5 : 0) // Simple conversion for old data
-                                            : (domain.dailyChecklist ? domain.dailyChecklist.satisfactionRating : 0)
-                                    },
-                                },
-                            ])
-                        );
-                        // Ensure transitionalGoal structure exists if loading very old data
-                        const mergedTransitionalGoal = { ...getInitialStrategyState().transitionalGoal, ...(parsedItem.transitionalGoal || {}) };
-
-                        return { 
-                            ...getInitialStrategyState(), 
-                            ...parsedItem, 
-                            domains: mergedDomains,
-                            transitionalGoal: mergedTransitionalGoal // Explicitly merge to preserve data
-                        };
-                    }
-                    return initialValue;
-                } catch (error) {
-                    console.error("Error reading from local storage:", error);
-                    return initialValue;
-                }
-            });
-
-            const setValue = (value) => {
-                try {
-                    const valueToStore = value instanceof Function ? value(storedValue) : value;
-                    setStoredValue(valueToStore);
-                    window.localStorage.setItem(key, JSON.stringify(valueToStore));
-                } catch (error) {
-                    console.error("Error writing to local storage:", error);
-                }
-            };
-            return [storedValue, setValue];
-        };
-
-        // --- Component for Accordion/Expandable Section ---
-        const StrategySection = React.forwardRef(({ title, children, defaultOpen = false, id }, ref) => {
-            const [isOpen, setIsOpen] = useState(defaultOpen);
-            // Use useRef internally
-            const sectionRef = useRef(null); 
-
-            // Expose the open/scroll function
-            React.useImperativeHandle(ref, () => ({
-                openAndScroll: () => {
-                    setIsOpen(true);
-                    // Slight delay to ensure accordion animation is complete before scrolling
-                    setTimeout(() => {
-                        if (sectionRef.current) {
-                            sectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                    }, 50); 
+        const handleChange = (section, key, value) => {
+            setProfileData(prev => ({
+                ...prev,
+                [section]: {
+                    ...prev[section],
+                    [key]: value
                 }
             }));
+        };
 
-            return (
-                <div id={id} ref={sectionRef} className="border border-gray-200 rounded-xl mb-4 bg-white shadow-sm pt-2" style={{ scrollMarginTop: '80px' }}>
-                    <button
-                        className="w-full p-4 flex justify-between items-center text-left font-semibold text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors rounded-t-xl"
-                        onClick={() => setIsOpen(!isOpen)}
-                    >
-                        {title}
-                        <svg className={`w-5 h-5 transition-transform ${isOpen ? 'transform rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    {isOpen && <div className="p-4 border-t border-gray-200">{children}</div>}
-                </div>
-            );
-        });
+        const handleSave = async (e) => {
+            e.preventDefault();
+            if (!db || !userId) {
+                setSaveError("Database or User ID not available. Cannot save.");
+                return;
+            }
 
-        // --- Component for Input Field ---
-        const InputField = ({ label, id, name, value, onChange, rows = 1, type = 'text', required = false, placeholder = '' }) => (
-            <div className="mb-4">
-                <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">{label} {required && <span className="text-red-500">*</span>}</label>
-                {rows > 1 ? (
-                    <textarea
-                        id={id} name={name} rows={rows} value={value || ''} onChange={onChange} required={required}
-                        className="input-text w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all"
-                        placeholder={placeholder}
-                    ></textarea>
-                ) : (
-                    <input
-                        type={type} id={id} name={name} value={value || ''} onChange={onChange} required={required}
-                        className="input-text w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all"
-                        placeholder={placeholder}
-                    />
-                )}
-            </div>
-        );
-        
-        // --- Domain Daily Checklist Component (Waves of Change) ---
-        const DomainChecklist = ({ domainKey, strategyData, handleMonitoringChecklistChange, handleSatisfactionRating }) => {
-            const daysOfWeek = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
-            const checklist = strategyData.domains[domainKey].dailyChecklist;
-            const ratingScale = [1, 2, 3, 4, 5];
+            setIsSaving(true);
+            setSaveError(null);
+            
+            try {
+                // Use the older v8 firestore method: db.collection().doc().set() or db.collection().add()
+                const profileCollectionRef = db.collection('artifacts').doc(FIREBASE_APP_ID).collection('users').doc(userId).collection('profileHistory');
+                const dataToSave = { 
+                    ...profileData, 
+                    submissionTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    recordType: "Initial Intake Profile"
+                };
+                
+                await profileCollectionRef.add(dataToSave);
+                
+                onNext(); 
 
-            return (
-                <div className="domain-checklist-wrapper mt-6 pt-4">
-                    <h3 className="text-lg font-bold text-gray-700 mb-4 border-b pb-2">Waves of Change Monitoring</h3>
-                    
-                    {/* Daily Engagement Checkboxes */}
-                    <p className="text-sm font-medium text-gray-600 mb-2">Did you engage in this domain's action today?</p>
-                    <div className="grid grid-cols-4 sm:grid-cols-7 gap-3 mb-6">
-                        {daysOfWeek.map(day => (
-                            <label 
-                                key={day} 
-                                className={`flex flex-col items-center p-2 rounded-lg border cursor-pointer transition-colors ${checklist[day] ? 'bg-indigo-100 border-indigo-400' : 'bg-white hover:bg-gray-100'}`}
-                            >
-                                <input 
-                                    type="checkbox" 
-                                    checked={checklist[day]} 
-                                    onChange={() => handleMonitoringChecklistChange(domainKey, day)} 
-                                    className="h-4 w-4 text-indigo-600 rounded" 
-                                />
-                                <span className="text-xs font-medium uppercase mt-1 text-gray-600">{day}</span>
-                            </label>
+            } catch (error) {
+                console.error("Error writing profile document: ", error);
+                setSaveError(`Failed to save data. Error: ${error.message}`);
+            } finally {
+                setIsSaving(false);
+            }
+        };
+
+        return (
+            <div className="p-4 sm:p-8 max-w-4xl mx-auto bg-white rounded-xl shadow-2xl">
+                <h1 className="text-4xl font-extrabold text-blue-800 mb-1 border-b pb-2">Client Profile Intake</h1>
+                <p className="text-gray-600 mb-8">This section helps us build your self-awareness map. **Once saved, this becomes a permanent Intake Record.**</p>
+
+                <form onSubmit={handleSave}>
+                    <div className="bg-green-50 p-6 rounded-xl shadow-inner mb-10 border border-green-200">
+                        <h2 className="text-3xl font-bold text-green-700 mb-4">Hotspots (Energy & Support)</h2>
+                        {profileQuestionsStructure.hotspots.map(({ key, label }) => (
+                            <TextAreaField key={key} label={label} value={profileData.hotspots[key]} onChange={(e) => handleChange('hotspots', key, e.target.value)} placeholder="Your response here..." rows={2}/>
                         ))}
                     </div>
 
-                    {/* Satisfaction Rating */}
-                    <div className="pt-4 border-t border-gray-200">
-                        <p className="text-sm font-medium text-gray-700 mb-3">If you're pleased with your attempt in **{strategyData.domains[domainKey].domainTitle}**, mark the rating below:</p>
-                        <div className="flex justify-between items-center bg-green-50 p-4 rounded-lg border border-green-200">
-                            <span className="text-sm font-medium text-gray-600">Low Satisfaction</span>
-                            <div className="flex space-x-3">
-                                {ratingScale.map(rating => (
-                                    <div 
-                                        key={rating}
-                                        className="satisfaction-dot"
-                                        style={{
-                                            borderColor: checklist.satisfactionRating >= rating ? '#10B981' : '#D1D5DB',
-                                            backgroundColor: checklist.satisfactionRating >= rating ? '#10B981' : 'white',
-                                        }}
-                                        onClick={() => handleSatisfactionRating(domainKey, rating)}
-                                        title={`Satisfaction Level ${rating}`}
-                                    >
-                                        {checklist.satisfactionRating >= rating && <span className="text-white text-xs font-bold">✓</span>}
-                                    </div>
-                                ))}
+                    <div className="bg-red-50 p-6 rounded-xl shadow-inner border border-red-200">
+                        <h2 className="text-3xl font-bold text-red-700 mb-4">Cold-spots (Obstacles & Drain)</h2>
+                        {profileQuestionsStructure.coldspots.map(({ key, label }) => (
+                             <TextAreaField key={key} label={`Do you detect and would like to eradicate: ${label}?`} value={profileData.coldspots[key]} onChange={(e) => handleChange('coldspots', key, e.target.value)} placeholder="Yes/No, and briefly describe the obstacle or theme..." rows={1}/>
+                        ))}
+                    </div>
+                    
+                    {saveError && <div className="mt-6 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg"><p className="font-semibold">Save Error:</p><p className="text-sm">{saveError}</p></div>}
+
+                    <button 
+                        type="submit"
+                        disabled={isSaving || !userId}
+                        className={`w-full py-4 mt-8 text-white font-bold rounded-xl shadow-lg transition-all transform hover:scale-[1.005] ${
+                            isSaving || !userId ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 active:scale-98'
+                        }`}
+                    >
+                        {isSaving ? 'Saving Intake Record...' : 'Save & Continue to Goal Guide →'}
+                    </button>
+                </form>
+            </div>
+        );
+    };
+
+    const GoalGuidanceScreen = ({ onNext }) => {
+        const smartGoals = ['Specific', 'Measurable', 'Achievable', 'Relevant', 'Time-bound'];
+        const dispositions = ['Resilience', 'Emotional Strength', 'Resourcefulness', 'Cognitive Capabilities', 'Reflection', 'Strategic Awareness', 'Relating', 'Social Sophistication'];
+        const tips = [
+            "Use your own style. Be realistic. Describe your goals and actions with **predictive and permissive sentences** to lower the pressure. Example: *Step 1: Laying foundations. I'm predicting increased tenacity and willpower gradually over the next few weeks.*",
+            "Be clear about tasks and context. Example: *I will use tenacity and willpower. Action 1: I'll set my alarm a few minutes earlier, allowing myself time to acknowledge my priority objectives and visualize myself carrying out tasks successfully with ease and flow.*",
+            "Plan your mental breaks. Have you forecast for **micro-breaks and macro-breaks**? A private moment to breathe, time in nature, and hopefully a little sunshine. This allows for mental processing and helps you accommodate unforeseen components.",
+            "Clarify steps and actions. Think of your **coping mechanisms**. Start with ones you're already aware of, then allow some breathing space for other possibilities to emerge. Allow your thoughts to organize an efficient way to describe your plan.",
+            "Use **directional and measurable language**. For example, 'Raising the quantity of genuinely content moments' or 'raising/lowering intensity of...'",
+            "Consider **balance and sustainability**. Always remember your overarching golden goal: health and fitness. What are your preferences of activities? How can you meet other tasks associated with your zone with as much oomph?",
+            "Use language that acknowledges the **temporary nature of your efforts**. *'For now, I'm doing this and I'm looking at it this way because it helps my motivation.'* Remember, everything is impermanent.",
+            "Address **acceptance, limitations, tolerance, trust, and values**.",
+            "Try using **self-observational language**. Create a plan A and a plan B. *'If I notice X about myself, I'm going to take plan A. If I notice Y, I'll call on plan B.'*",
+            "For each 'Personal Best' category, break down the process into a series of clear, **sequential steps**. Think of it like a recipe or a blueprint. Avoid jargon and focus on practical application."
+        ];
+
+        return (
+            <div className="p-4 sm:p-8 max-w-4xl mx-auto bg-white rounded-xl shadow-2xl">
+                <h1 className="text-4xl font-extrabold text-blue-800 mb-4 border-b pb-2">Your Goal-Setting Framework</h1>
+                <p className="text-gray-600 mb-8">This guide will prepare you to define effective, sustainable goals for your journey ahead.</p>
+
+                <div className="mb-10 p-6 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                    <h2 className="text-2xl font-bold text-blue-700 mb-4">The SMART Goal Framework</h2>
+                    <ul className="space-y-2">
+                        {smartGoals.map((goal, index) => (
+                            <li key={index} className="text-gray-700 font-semibold flex items-center">
+                                <span className="text-blue-500 mr-3 text-xl">&#9679;</span> {goal}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+                
+                <div className="mb-10 p-6 bg-green-50 rounded-lg border-l-4 border-green-400">
+                    <h2 className="text-2xl font-bold text-green-700 mb-4">Developing Core Dispositions</h2>
+                    <p className="text-gray-700 mb-4">We also check that you're developing these essential dispositions:</p>
+                    <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-sm font-medium text-green-800">
+                        {dispositions.map((d, index) => (
+                            <div key={index} className="flex items-center">
+                                <span className="text-green-500 mr-2">&#10003;</span> {d}
                             </div>
-                            <span className="text-sm font-medium text-gray-600">High Satisfaction</span>
-                        </div>
+                        ))}
+                    </div>
+                    <p className="text-sm italic text-gray-500 mt-4">These dispositions are generated through **Sensitivity, Inclination, and Ability**—the perception, felt impetus, and basic capacity to follow through with a behavior.</p>
+                </div>
+
+                <div className="mb-10 p-6 bg-yellow-50 rounded-lg border-l-4 border-yellow-400">
+                    <h2 className="text-2xl font-bold text-yellow-700 mb-4">Actionable Planning Tips</h2>
+                    <ul className="space-y-6">
+                        {tips.map((tip, index) => (
+                            <li key={index} className="text-gray-700 border-b pb-2 last:border-b-0">
+                                <span className="text-yellow-500 font-bold mr-2">{index + 1}.</span> {tip}
+                            </li>
+                        ))}
+                    </ul>
+
+                    <h3 className="text-xl font-bold text-yellow-700 mt-8 mb-4 pt-4 border-t border-yellow-200">Reflect on Acceptance</h3>
+                    <div className="space-y-3 text-gray-700">
+                        <p>Thinking about your zones:</p>
+                        <p className="font-semibold">&#9679; Which responsibilities and limitations are truly yours?</p>
+                        <p className="font-semibold">&#9679; What are you willing to do?</p>
+                        <p className="font-semibold">&#9679; Do you need to redistribute your energy more effectively to improve a range of Personal Best’s?</p>
                     </div>
                 </div>
-            );
-        };
 
-        // --- Component for Progress Bar / Engagement Visualizer ---
-        const ProgressBar = ({ strategyData }) => {
-            const domainKeys = Object.keys(strategyData.domains);
-            let totalFields = 0;
-            let completedFields = 0;
-            const requiredDomainFields = ['title', 'successDefinition', 'experienceImagined'];
+                <button 
+                    onClick={onNext}
+                    className="w-full py-4 mt-8 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 transition-colors transform hover:scale-[1.005] active:scale-98"
+                >
+                    I Understand, Continue to Strategy Dashboard &rarr;
+                </button>
+            </div>
+        );
+    };
 
-            // 1. Domain Fields
-            domainKeys.forEach(key => {
-                const domain = strategyData.domains[key];
-                requiredDomainFields.forEach(() => { totalFields++; }); 
-                
-                requiredDomainFields.forEach(field => {
-                    if (domain[field] && domain[field].trim() !== '') {
-                        completedFields++;
-                    }
-                });
-                
-                // 3 Action Summaries per domain (9 total)
-                domain.actions.forEach(action => {
-                    totalFields++;
-                    if (action.summary && action.summary.trim() !== '') {
-                         completedFields++;
-                    }
-                });
-            });
-            
-            // 2. Transitional Goal Fields
-            const transitionalFields = ['current', 'potential', 'position'];
-            transitionalFields.forEach(() => { totalFields++; }); 
-            
-            transitionalFields.forEach(field => {
-                if (strategyData.transitionalGoal[field] && strategyData.transitionalGoal[field].trim() !== '') {
-                    completedFields++;
-                }
-            });
-            
-            const progress = Math.round((completedFields / totalFields) * 100) || 0;
-            const progressColor = progress < 33 ? 'bg-red-500' : progress < 66 ? 'bg-yellow-500' : 'bg-green-500';
+    const JournalQuestionsModal = ({ onClose }) => {
+        const observationQuestions = [
+            'Use of internal dialogue',
+            'Your tolerance for ambiguity, frustration, or discomfort',
+            'Biases identified, times you acted outside of your comfort zone and found the experience more/less comfortable than you expected',
+            'Insights gained from participating',
+            'Times of Pessimism vs. Optimism',
+            'Times of Positive vs. Negative expectations',
+            'Do you easily recognise Self vs. Others Orientation',
+            'Do you see things as Similarities vs. Differences',
+            'Visual vs. Kinesthetic vs. Auditory',
+            'Can you recognise different frame of reference—emotional, thinking, imaginative, internal, and external.',
+            'Do you recognise when you are generalizing v’s developing beliefs from external evidence.', 
+            'Distortion',
+            'Deletion',
+            'In your zone is it more helpful to Abstract vs. Concrete',
+            'To Avoid vs. Pro-activity',
+            'Are you taking an All or nothing view vs. Options',
+            'What are good times to be Focused vs. Diffused',
+        ];
 
-            return (
-                <div className="mb-6 bg-white p-4 rounded-xl shadow-md border border-gray-200">
-                    <h3 className="text-lg font-bold text-gray-700 mb-2">Strategy Completion</h3>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                        <div 
-                            className={`h-2.5 rounded-full transition-all duration-500 ${progressColor}`} 
-                            style={{ width: `${progress}%` }}
-                        ></div>
+        const checkInQuestions = [
+            'Are you able to achieve the action again, consistently?',
+            'Are there any steps you would take out for good reason?',
+            'Have your actions developed a stronger sense of how you manage your internal and external worlds?',
+            "Is looking at the details separately helping you approach life with greater understanding and enjoyment?",
+            'Are you going to keep going?',
+            'What self-observation would indicate you\'re due for a fresh challenge?',
+            'Where to now?',
+        ];
+
+        return (
+            <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-start justify-center p-4 z-50 overflow-y-auto">
+                <div className="bg-white rounded-xl shadow-3xl max-w-3xl w-full my-8 p-6 sm:p-8">
+                    <div className="flex justify-between items-center border-b pb-3 mb-4">
+                        <h2 className="text-3xl font-extrabold text-indigo-700">Weekly Reflection Guide</h2>
+                        <button 
+                            onClick={onClose}
+                            className="text-gray-500 hover:text-gray-800 transition-colors text-3xl font-light"
+                        >
+                            &times;
+                        </button>
                     </div>
-                    <p className="text-sm font-medium text-gray-500 mt-2">{progress}% Complete ({completedFields} of {totalFields} core items filled)</p>
-                </div>
-            );
-        };
 
-        // --- Main App Component ---
-        const App = () => {
-            // State for application flow: 'welcome' (Stage 1), 'profile' (Stage 2), 'form' (Stage 3: Goal Guidance)
-            const [stage, setStage] = useLocalStorage('wiseWhalesStage', 'welcome');
-            
-            // State for the strategy data, using Local Storage
-            const [strategyData, setStrategyData] = useLocalStorage(LOCAL_STORAGE_KEY, getInitialStrategyState());
-            const [focusCategory, setFocusCategory] = useState('Physical Flow'); // Default focus
-            
-            // Ref object to store references to all domain sections
-            const domainRefs = useRef({}); 
-
-            // Function to set the focus category and scroll to the section
-            const handleCategoryClick = useCallback((categoryTitle) => {
-                setFocusCategory(categoryTitle);
-                
-                // Find the associated domain key (e.g., 'physicalFlow')
-                const domainKey = domainKeys.find(key => STRATEGY_CONTENT[categoryTitle].title === strategyData.domains[key].domainTitle);
-                
-                // Check if the ref exists and call the exposed function to scroll/open it
-                if (domainKey && domainRefs.current[domainKey]) {
-                    domainRefs.current[domainKey].openAndScroll();
-                } else {
-                    // Fallback scroll to top if ref isn't ready
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
-            }, [strategyData.domains]); // Depend on domains just in case structure changes
-
-            // Check if there is existing data and skip 'welcome' screen
-            useEffect(() => {
-                // Check if profile name is set AND we are on the welcome screen
-                if (strategyData.profile.name && stage === 'welcome') {
-                    setStage('form'); // Skip welcome if profile is filled
-                }
-                
-                // --- FIX FOR PROFILE -> WELCOME NAVIGATION ---
-                // The 'profile' screen is the only place we allow navigation back to 'welcome'
-                // We add an explicit check to make sure the stage doesn't get immediately overridden
-                // This is a subtle fix for the auto-skip logic above.
-                if (stage === 'profile') {
-                    // Do nothing, allow user to stay on profile or click back to welcome.
-                }
-
-            }, [stage, strategyData.profile.name]); // Depend on profile.name to catch persistence after sign-in
-            
-            const currentContent = STRATEGY_CONTENT[focusCategory];
-            const domainKeys = Object.keys(strategyData.domains);
-
-            // HANDLERS (Generic helpers)
-
-            // Handler for Transitional Goal (Stage: 'form' - Step 1)
-            const handleTransitionalGoalChange = useCallback((e) => {
-                const { name, value } = e.target;
-                setStrategyData(prev => ({
-                    ...prev,
-                    transitionalGoal: { ...prev.transitionalGoal, [name]: value }
-                }));
-            }, [setStrategyData]); 
-
-            // Generic handler for nested domain fields (Stage: 'form' - Step 2)
-            const handleDomainChange = useCallback((domainKey, field, value, actionId = null, subField = null) => {
-                setStrategyData(prev => {
-                    const newDomains = { ...prev.domains };
-                    
-                    if (actionId !== null) {
-                        const actionIndex = newDomains[domainKey].actions.findIndex(a => a.id === actionId);
-                        if (actionIndex !== -1) {
-                            newDomains[domainKey].actions[actionIndex] = {
-                                ...newDomains[domainKey].actions[actionIndex],
-                                [subField]: value
-                            };
-                        }
-                    } else {
-                        newDomains[domainKey][field] = value;
-                    }
-                    
-                    return { ...prev, domains: newDomains };
-                });
-            }, [setStrategyData]);
-
-            // Handler for Domain-Specific Daily Checklists
-            const handleMonitoringChecklistChange = useCallback((domainKey, dayOrMetric) => {
-                setStrategyData(prev => {
-                    const newDomains = { ...prev.domains };
-                    const currentChecklist = newDomains[domainKey].dailyChecklist;
-
-                    newDomains[domainKey].dailyChecklist = {
-                        ...currentChecklist,
-                        [dayOrMetric]: !currentChecklist[dayOrMetric]
-                    };
-                    
-                    return { ...prev, domains: newDomains };
-                });
-            }, [setStrategyData]);
-
-            // Handler for Domain-Specific Satisfaction Rating
-            const handleSatisfactionRating = useCallback((domainKey, rating) => {
-                setStrategyData(prev => {
-                    const newDomains = { ...prev.domains };
-                    const currentRating = newDomains[domainKey].dailyChecklist.satisfactionRating;
-                    
-                    // Toggle functionality: if the same rating is clicked, reset to 0, otherwise set the rating
-                    const newRating = (currentRating === rating) ? 0 : rating;
-
-                    newDomains[domainKey].dailyChecklist = {
-                        ...newDomains[domainKey].dailyChecklist,
-                        satisfactionRating: newRating
-                    };
-                    
-                    return { ...prev, domains: newDomains };
-                });
-            }, [setStrategyData]);
-
-            // Handler for Monitoring Reflection (Stage: 'form' - Step 3)
-            const handleMonitoringReflectionChange = useCallback((e) => {
-                setStrategyData(prev => ({
-                    ...prev,
-                    monitoring: { ...prev.monitoring, weeklyReflection: e.target.value }
-                }));
-            }, [setStrategyData]);
-            
-            // Generate the structured placeholder for the journal
-            const reflectionPlaceholder = `Action 1: [Reflect on what happened, feelings, results, and what was learned]\n\nAction 2: [...]\n\nAction 3: [...]`;
-
-
-            // Function to trigger data save and download (simulates final 'submission')
-            const downloadStrategy = () => {
-                const finalData = {
-                    Profile: strategyData.profile,
-                    TransitionalGoal: strategyData.transitionalGoal,
-                    StrategyDomains: strategyData.domains,
-                    Monitoring: strategyData.monitoring,
-                    GeneratedOn: new Date().toLocaleString()
-                };
-                
-                const dataStr = JSON.stringify(finalData, null, 2);
-                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-                
-                const exportFileDefaultName = `${strategyData.profile.name.replace(/\s/g, '_')}_Strategy_${new Date().toISOString().split('T')[0]}.json`;
-                
-                let linkElement = document.createElement('a');
-                linkElement.setAttribute('href', dataUri);
-                linkElement.setAttribute('download', exportFileDefaultName);
-                linkElement.click();
-
-                alert(`Strategy for ${strategyData.profile.name} downloaded successfully! (File: ${exportFileDefaultName})`);
-            };
-            
-            // Function to clear local storage and reset the app
-            const clearData = () => {
-                if (window.confirm("Are you sure you want to clear ALL saved data and start a new strategy? This cannot be undone.")) {
-                    localStorage.removeItem(LOCAL_STORAGE_KEY);
-                    localStorage.removeItem('wiseWhalesStage');
-                    setStrategyData(getInitialStrategyState());
-                    setStage('welcome');
-                }
-            };
-
-            // --- FIREBASE AUTH COMPONENTS ---
-            const [user, setUser] = useState(null);
-            const [loading, setLoading] = useState(true);
-            const [isRegistering, setIsRegistering] = useState(false);
-            const [authError, setAuthError] = useState('');
-            const [email, setEmail] = useState('');
-            const [password, setPassword] = useState('');
-            
-            // Listener for Firebase Auth state changes
-            useEffect(() => {
-                // Check if Firebase auth and its onAuthStateChanged method exist
-                if (typeof firebase !== 'undefined' && firebase.auth) {
-                    const unsubscribe = firebase.auth().onAuthStateChanged((currentUser) => {
-                        setUser(currentUser);
-                        setLoading(false);
-                        if (currentUser) {
-                            // If user logs in, ensure stage is moved to 'form' or respects saved stage
-                            const savedStage = localStorage.getItem('wiseWhalesStage');
-                            if (savedStage) {
-                                setStage(savedStage.replace(/"/g, '')); // Remove quotes from string value
-                            } else {
-                                setStage('welcome');
-                            }
-                        } else {
-                            // If user logs out, reset to welcome screen
-                            setStage('welcome');
-                        }
-                    });
-                    return () => unsubscribe();
-                } else {
-                    // Fallback if Firebase scripts aren't loaded (causes the blank screen now)
-                    console.error("Firebase is not loaded. Cannot initialize authentication.");
-                    setLoading(false);
-                    // Render a basic message if Firebase is completely absent
-                    setUser(null);
-                }
-            }, []);
-
-            const handleSignIn = (e) => {
-                e.preventDefault();
-                setAuthError('');
-                // Since public sign-up is disabled, this is only for existing manual users
-                if (typeof firebase !== 'undefined' && firebase.auth) {
-                    firebase.auth().signInWithEmailAndPassword(email, password)
-                        .then(() => {
-                            // Success is handled by onAuthStateChanged
-                            setEmail('');
-                            setPassword('');
-                        })
-                        .catch(error => {
-                            // Specific error message for disabled sign-up (security feature)
-                            if (error.code === 'auth/operation-not-allowed') {
-                                setAuthError('Account creation is disabled for this domain. Please contact your therapist.');
-                            } else {
-                                setAuthError('Sign in failed: ' + error.message);
-                            }
-                        });
-                }
-            };
-
-            // --- AUTH SCREEN COMPONENT (Login/Welcome Gate) ---
-            const AuthScreen = () => (
-                <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-                    <div className="w-full max-w-sm bg-white p-8 rounded-xl shadow-lg border border-gray-200">
-                        <h1 className="text-3xl font-bold text-center text-blue-700 mb-6">Wise Whale Strategy Builder</h1>
-                        <p className="text-center text-gray-500 mb-8">Secure Access for Clients</p>
-
-                        <form onSubmit={handleSignIn}>
-                            <InputField 
-                                label="Email Address" 
-                                id="email" 
-                                type="email"
-                                value={email} 
-                                onChange={(e) => setEmail(e.target.value)} 
-                                required={true}
-                                placeholder="client@example.com"
-                            />
-                            <InputField 
-                                label="Password" 
-                                id="password" 
-                                type="password"
-                                value={password} 
-                                onChange={(e) => setPassword(e.target.value)} 
-                                required={true}
-                                placeholder="••••••••"
-                            />
-
-                            {authError && (
-                                <p className="text-red-600 text-sm mb-4 bg-red-50 p-3 rounded border border-red-200">
-                                    {authError}
-                                </p>
-                            )}
-
-                            <button 
-                                type="submit"
-                                className="w-full py-3 text-white font-bold bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-md mt-4"
-                            >
-                                Sign In
-                            </button>
-                        </form>
-                        
-                        <p className="text-center text-sm text-gray-500 mt-6">
-                            This application is for **Authorized Clients Only**. Accounts are created manually by your therapist.
-                        </p>
-                    </div>
-                </div>
-            );
-
-            // --- RENDER LOGIC ---
-            if (loading) {
-                return (
-                    <div className="flex items-center justify-center min-h-screen">
-                        <p className="text-xl text-gray-600">Loading application...</p>
-                    </div>
-                );
-            }
-
-            if (!user) {
-                // If the user is not signed in, show the Auth/Login Screen
-                return <AuthScreen />;
-            }
-            
-            // --- WELCOME SCREEN COMPONENT (STAGE 1) ---
-            const WelcomeScreen = () => (
-                <div className="text-center p-8 bg-white rounded-xl shadow-lg">
-                    <h1 className="text-4xl font-extrabold text-blue-800 mb-4">Welcome to the Strategy Builder 👋</h1>
-                    <p className="text-xl text-gray-700 mb-6">Introduction & Guidance (Stage 1 of 3)</p>
-                    <div className="text-left text-gray-600 space-y-4 mb-8">
-                        <p>This platform is designed to help you **define your potential** and align your subconscious and conscious goals using the **S.M.A.R.T. goals framework** across four core domains of human function.</p>
-                        <p>Our focus is on creating steps and actions that you *enjoy* and find rewarding. Less stress, more success.</p>
-                        <p className="font-semibold text-blue-700 border-t pt-2">Instructions:</p>
-                        <ul className="list-disc list-inside ml-4 space-y-1">
-                            <li>**Start Profile Questions** to personalize your journey (Stage 2).</li>
-                            <li>Define your **Transitional Goal** and complete the S.M.A.R.T. steps (Stage 3).</li>
-                            <li>**Waves of Change** monitoring is integrated into each domain for specific tracking.</li>
-                            <li>Your progress is **saved automatically** in your browser.</li>
+                    <div className="mb-8 p-4 bg-purple-50 rounded-lg border-l-4 border-purple-400">
+                        <h3 className="text-xl font-bold text-purple-700 mb-3">Self-Observation of Engagement & Evaluations</h3>
+                        <ul className="space-y-3">
+                            {observationQuestions.map((q, index) => (
+                                <li key={`obs-${index}`} className="text-gray-700 flex items-start">
+                                    <span className="text-purple-500 mr-2 mt-1">•</span> {q}
+                                </li>
+                            ))}
                         </ul>
                     </div>
-                    <button 
-                        onClick={() => setStage('profile')}
-                        className="py-3 px-8 text-white font-bold bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-lg"
-                    >
-                        Start Profile Questions
-                    </button>
-                    <button 
-                        onClick={window.signOutUser}
-                        className="py-3 px-4 text-sm font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors mt-4 ml-4"
-                    >
-                        Log Out
-                    </button>
-                </div>
-            );
 
-
-            // --- PROFILE SCREEN COMPONENT (STAGE 2) ---
-            const ProfileScreen = () => {
-                // Use local state for profile data until submission to prevent global re-render on every keystroke
-                const [localProfile, setLocalProfile] = useState(strategyData.profile);
-                
-                // Keep the global state updated on a delay or on button click
-                const handleLocalChange = (e) => {
-                    const { name, value } = e.target;
-                    setLocalProfile(prev => ({ ...prev, [name]: value }));
-                };
-                
-                const handleProfileSubmit = () => {
-                    // Update the global state with the local state only when moving forward
-                    setStrategyData(prev => ({ ...prev, profile: localProfile }));
-                    setStage('form');
-                };
-
-                const isFormComplete = localProfile.name && localProfile.theme;
-                
-                return (
-                    <div className="p-8 bg-white rounded-xl shadow-lg">
-                        <h1 className="text-3xl font-extrabold text-blue-800 mb-4">Profile Questions 👤</h1>
-                        <p className="text-gray-600 mb-8">Let's set the stage for your strategy. (Stage 2 of 3)</p>
-                        
-                        <InputField 
-                            label="Your Name (or preferred identifier)" 
-                            id="profile-name" name="name" 
-                            value={localProfile.name} 
-                            onChange={handleLocalChange} 
-                            required={true}
-                        />
-                         <InputField 
-                            label="Today's Date" 
-                            id="profile-date" name="date" 
-                            type="date"
-                            value={localProfile.date} 
-                            onChange={handleLocalChange} 
-                        />
-                        <InputField 
-                            label="Overall Theme/Title for this Strategy (e.g., 'The Year of Alignment')" 
-                            id="profile-theme" name="theme" 
-                            rows={2}
-                            value={localProfile.theme} 
-                            onChange={handleLocalChange} 
-                            required={true}
-                        />
-
-                        <div className="mt-8 flex justify-between items-center">
-                            <button 
-                                onClick={() => setStage('welcome')}
-                                className="py-2 px-4 text-sm font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
-                            >
-                                ← Back to Welcome
-                            </button>
-                            <button 
-                                onClick={handleProfileSubmit}
-                                disabled={!isFormComplete}
-                                className={`py-3 px-8 text-white font-bold rounded-xl transition-colors shadow-lg ${
-                                    isFormComplete ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed'
-                                }`}
-                            >
-                                {isFormComplete ? 'Go to Goal Guidance (Stage 3)' : 'Fill Required Fields'}
-                            </button>
-                        </div>
+                    <div className="p-4 bg-teal-50 rounded-lg border-l-4 border-teal-400">
+                        <h3 className="text-xl font-bold text-teal-700 mb-3">A Final Check-in: Self-Observation</h3>
+                        <ul className="space-y-3">
+                            {checkInQuestions.map((q, index) => (
+                                <li key={`check-${index}`} className="text-gray-700 flex items-start">
+                                    <span className="text-teal-500 mr-2 mt-1">•</span> {q}
+                                </li>
+                            ))}
+                        </ul>
+                        <p className="text-sm italic text-gray-500 mt-4 font-semibold">
+                            You’ve really explored your strengths, goals, and possibilities today! Well done.
+                            Remember Wise Whales therapist’s are here to help guide people to hear their wise whale within.
+                        </p>
                     </div>
-                );
-            };
 
-            // Fallback UI
-            if (!currentContent && stage === 'form') {
-                return <div className="p-8 text-center text-red-500">Error: Focus category "{focusCategory}" not found.</div>;
-            }
-
-            // --- RENDER BASED ON STAGE ---
-            let content;
-            if (stage === 'welcome') {
-                content = (
-                    <div class="pt-8">
-                        <WelcomeScreen />
-                    </div>
-                );
-            } else if (stage === 'profile') {
-                content = (
-                    <div class="pt-8">
-                        <ProfileScreen />
-                    </div>
-                );
-            } else {
-                // Main Strategy Form (STAGE 3: Goal Guidance)
-                content = (
-                    <div className="max-w-3xl mx-auto pt-8">
-                        <header className="text-center mb-8">
-                            <h1 className="text-3xl font-extrabold text-blue-800">Goal Guidance 🌊</h1>
-                            <p className="text-gray-500 mt-1 font-medium">Stage 3 of 3 | Strategy: {strategyData.profile.theme}</p>
-                            
-                            <div className="flex justify-between items-center mt-4 mb-4">
-                                <button 
-                                    onClick={() => setStage('profile')} 
-                                    className="py-2 px-4 text-sm font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
-                                >
-                                    ← Back to Profile
-                                </button>
-                                <div className="flex flex-wrap justify-center gap-2">
-                                    {Object.keys(STRATEGY_CONTENT).map(cat => (
-                                        <button 
-                                            key={cat} 
-                                            onClick={() => handleCategoryClick(cat)}
-                                            className={`px-3 py-1 text-sm rounded-full transition-all ${
-                                                cat === focusCategory ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
-                                            }`}
-                                        >
-                                            {STRATEGY_CONTENT[cat].title}
-                                        </button>
-                                    ))}
-                                </div>
-                                <button 
-                                    onClick={window.signOutUser}
-                                    className="py-2 px-4 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors shadow-md"
-                                >
-                                    Log Out
-                                </button>
-                            </div>
-                            </header>
-
-                        <ProgressBar strategyData={strategyData} />
-
-                        <div className="bg-blue-50 p-6 rounded-xl border-l-4 border-blue-400 mb-8">
-                            <p className="font-medium text-blue-700 mb-3 guidance-box-text">Guidance for Focus Domain: <span className="font-bold">{currentContent.title}</span></p>
-                            <p className="text-gray-600 guidance-box-text">{currentContent.prompt}</p>
-                        </div>
-
-                        <StrategySection title="1. Define Your Transitional Goal" defaultOpen={true}>
-                            <p className="text-gray-600 mb-4 font-medium">
-                                Briefly describe the transition from your **Current State** to your **Potential State** and **Distinguish your Position in Change**.
-                            </p>
-                            <InputField label="Current State Summary" id="current-state" name="current" rows={3} value={strategyData.transitionalGoal.current} onChange={handleTransitionalGoalChange} required={true} />
-                            <InputField label="Potential State Summary" id="potential-state" name="potential" rows={3} value={strategyData.transitionalGoal.potential} onChange={handleTransitionalGoalChange} required={true} />
-                            <InputField label="Distinguish your Position in Change (Where are you now on the path?)" id="position-in-change" name="position" rows={1} value={strategyData.transitionalGoal.position} onChange={handleTransitionalGoalChange} required={true} />
-                        </StrategySection>
-
-                        <h2 className="text-xl font-bold text-gray-700 mb-4 mt-8">2. Steps & Actions Across Four Domains</h2>
-                        
-                        {domainKeys.map((domainKey) => {
-                            const domain = strategyData.domains[domainKey];
-                            return (
-                                <StrategySection 
-                                    key={domainKey} 
-                                    title={`Domain: ${domain.domainTitle}`}
-                                    id={`domain-${slugify(domainKey)}`}
-                                    ref={el => domainRefs.current[domainKey] = el}
-                                >
-                                    <InputField label="Step Title (A S.M.A.R.T. Goal)" id={`${domainKey}-title`} name="title" value={domain.title} onChange={(e) => handleDomainChange(domainKey, 'title', e.target.value)} required={true} />
-                                    <InputField label="Define Success (What does achievement look like?)" id={`${domainKey}-success`} name="successDefinition" value={domain.successDefinition} onChange={(e) => handleDomainChange(domainKey, 'successDefinition', e.target.value)} required={true} />
-                                    <InputField label="Imagine how this will be experienced, use your senses" id={`${domainKey}-imagine`} name="experienceImagined" rows={2} value={domain.experienceImagined} onChange={(e) => handleDomainChange(domainKey, 'experienceImagined', e.target.value)} required={true} />
-                                    <InputField label="What effects will this have on yourself and others?" id={`${domainKey}-effects`} name="effects" rows={2} value={domain.effects} onChange={(e) => handleDomainChange(domainKey, 'effects', e.target.value)} />
-
-                                    <h4 className="font-semibold text-md text-blue-700 mt-6 mb-3 border-b pb-2">Define 3 Specific Actions</h4>
-
-                                    {domain.actions.map((action, index) => (
-                                        <div key={action.id} className="bg-gray-50 p-4 rounded-lg mb-4 border border-gray-200">
-                                            <h5 className="font-bold text-gray-800 mb-3">Action {index + 1}.</h5>
-                                            <InputField label="Action Summary (Task, Who's involved, Duration, etc.)" id={`${domainKey}-action-${index}-summary`} rows={3} value={action.summary} onChange={(e) => handleDomainChange(domainKey, 'actions', e.target.value, action.id, 'summary')} required={index === 0 ? true : false} />
-                                            <h6 className="font-medium text-sm text-gray-600 mt-4 mb-2">List predictions on how you think you will go:</h6>
-                                            <InputField label="What will be easy?" id={`${domainKey}-action-${index}-easy`} rows={1} value={action.easy} onChange={(e) => handleDomainChange(domainKey, 'actions', e.target.value, action.id, 'easy')} />
-                                            <InputField label="What will be hard?" id={`${domainKey}-action-${index}-hard`} rows={1} value={action.hard} onChange={(e) => handleDomainChange(domainKey, 'actions', e.target.value, action.id, 'hard')} />
-                                            <InputField label="Are there any helpful actions?" id={`${domainKey}-action-${index}-helpful`} rows={1} value={action.helpful} onChange={(e) => handleDomainChange(domainKey, 'actions', e.target.value, action.id, 'helpful')} />
-                                        </div>
-                                    ))}
-                                    
-                                    <DomainChecklist 
-                                        domainKey={domainKey} 
-                                        strategyData={strategyData} 
-                                        handleMonitoringChecklistChange={handleMonitoringChecklistChange} 
-                                        handleSatisfactionRating={handleSatisfactionRating}
-                                    />
-                                </StrategySection>
-                            );
-                        })}
-
-                        <h2 className="text-xl font-bold text-gray-700 mb-4 mt-8">3. Weekly Reflection Journal</h2>
-                        <div className="form-card p-6 bg-white rounded-xl shadow-sm border border-gray-200">
-                            
-                            <h3 className="text-lg font-semibold text-blue-700 mb-3">
-                                Goal Alignment Evaluation
-                            </h3>
-                            <p className="text-gray-600 mb-4 font-medium border-b pb-2">
-                                **Can you evaluate whether these Steps and Actions are getting you closer to your destination goal— the primary transitional goal?** (Use the space below to reflect on this question across all domains.)
-                            </p>
-
-                            <h3 className="text-lg font-semibold mb-3 mt-4">Structured Weekly Reflection</h3>
-                            <InputField 
-                                label="Reflect on your week's progress and insights across all domains." 
-                                id="weekly-reflection" 
-                                name="weeklyReflection" 
-                                rows={8} 
-                                value={strategyData.monitoring.weeklyReflection} 
-                                onChange={handleMonitoringReflectionChange} 
-                                placeholder={reflectionPlaceholder}
-                            />
-                        </div>
-
-                        <div className="mt-10 mb-8 space-y-4">
-                            <button
-                                onClick={downloadStrategy}
-                                className="w-full py-3 px-6 text-white font-bold rounded-xl shadow-lg bg-green-600 hover:bg-green-700 transition-colors"
-                            >
-                                Download Strategy (Save as JSON File)
-                            </button>
-                            <button
-                                onClick={clearData}
-                                className="w-full py-2 px-6 text-sm font-medium rounded-xl text-red-600 bg-red-100 hover:bg-red-200 transition-colors border border-red-300"
-                            >
-                                Clear All Saved Data & Start New Strategy
-                            </button>
-                            <p className="text-xs text-gray-500 text-center mt-2">Data is saved automatically in your browser as you type.</p>
-                        </div>
-                    </div>
-                );
-            }
-
-            return (
-                <div className="min-h-screen p-4 md:p-8 flex justify-center items-start">
-                    <div className="w-full max-w-4xl">
-                        {content}
+                    <div className="mt-8 text-center">
+                        <button 
+                            onClick={onClose}
+                            className="w-full sm:w-1/2 py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 transition-colors transform hover:scale-[1.01] active:scale-98"
+                        >
+                            Close Guide & Back to Strategy
+                        </button>
                     </div>
                 </div>
-            );
+            </div>
+        );
+    };
+
+    const FullStrategyBuilderScreen = ({ onComplete }) => {
+        return (
+            <div className="p-8 max-w-4xl mx-auto bg-gray-50 rounded-xl shadow-2xl text-center">
+                <h1 className="text-4xl font-extrabold text-indigo-700 mb-4">Full Strategy Builder (Placeholder)</h1>
+                <p className="text-gray-700 mb-8">
+                    This screen is a placeholder for the full strategy definition tool.
+                </p>
+                <button
+                    onClick={onComplete}
+                    className="w-full sm:w-1/2 py-4 mt-4 text-white font-bold rounded-xl shadow-lg bg-indigo-600 hover:bg-indigo-700 active:scale-98 transition-all"
+                >
+                    Return to Dashboard &rarr;
+                </button>
+            </div>
+        );
+    };
+
+    const StrategySummaryScreen = ({ userId, onDefineStrategy, onProfile, onGuidance }) => {
+        const [isModalOpen, setIsModalOpen] = useState(false);
+        const [currentGoalReflection, setCurrentGoalReflection] = useState(''); 
+        const [currentHotspotColdspot, setCurrentHotspotColdspot] = useState(''); 
+        const [isSavingReflection, setIsSavingReflection] = useState(false);
+        const [reflectionSaveMessage, setReflectionSaveMessage] = useState('');
+        const [historyEntries, setHistoryEntries] = useState([]); 
+
+        const [strategyData, setStrategyData] = useState(null);
+        const [isLoadingData, setIsLoadingData] = useState(true);
+        const [isUpdatingLog, setIsUpdatingLog] = useState(false);
+        
+        const daysOfWeekKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+        const daysOfWeekLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+        // --- FIREBASE LISTENERS ---
+        
+        const fetchStrategyData = useCallback(async () => {
+            if (!db || !userId) {
+                setIsLoadingData(false);
+                return;
+            }
+            try {
+                // v8 method for getting a single document
+                const strategyDocRef = db.collection('artifacts').doc(FIREBASE_APP_ID).collection('users').doc(userId).collection('fullStrategyData').doc('userStrategy');
+                const docSnap = await strategyDocRef.get();
+                if (docSnap.exists) {
+                    setStrategyData(docSnap.data());
+                } else {
+                    setStrategyData(getInitialStrategyState()); 
+                    // Optional: Create the initial document if it doesn't exist
+                    // await strategyDocRef.set(getInitialStrategyState());
+                }
+            } catch (error) {
+                console.error("Error fetching strategy data:", error);
+                setStrategyData(getInitialStrategyState());
+            } finally {
+                setIsLoadingData(false);
+            }
+        }, [userId]);
+
+        useEffect(() => {
+            if (!db || !userId) return;
+
+            // v8 method for listening to a collection
+            const historyCollectionRef = db.collection('artifacts').doc(FIREBASE_APP_ID).collection('users').doc(userId).collection('reflectionHistory');
+            
+            const unsubscribe = historyCollectionRef
+                .orderBy('timestamp', 'desc')
+                .onSnapshot(snapshot => {
+                    const entries = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data(),
+                        // Convert Firestore Timestamp to JS Date or Milliseconds for consistent use
+                        timestamp: doc.data().timestamp ? doc.data().timestamp.toDate().getTime() : new Date().getTime(),
+                    }));
+                    setHistoryEntries(entries);
+                }, (error) => {
+                    console.error("Error listening to reflection history:", error);
+                });
+
+            return () => unsubscribe();
+        }, [userId]);
+
+        useEffect(() => {
+            if (userId) { fetchStrategyData(); }
+        }, [userId, fetchStrategyData]);
+        
+        // --- FIREBASE WRITE HANDLERS ---
+
+        const handleSaveReflection = async () => {
+            if (!db || !userId || (!currentGoalReflection.trim() && !currentHotspotColdspot.trim())) {
+                setReflectionSaveMessage("Reflection log cannot be completely empty.");
+                return;
+            }
+
+            setIsSavingReflection(true);
+            setReflectionSaveMessage('');
+            
+            const checklistSnapshot = strategyData?.monitoring?.dailyChecklist || {};
+            const transitionalGoalSnapshot = strategyData?.transitionalGoal || { current: '', potential: '', position: '' };
+
+            try {
+                // v8 method: .add()
+                const historyCollectionRef = db.collection('artifacts').doc(FIREBASE_APP_ID).collection('users').doc(userId).collection('reflectionHistory');
+                
+                const newReflection = {
+                    goalReflectionText: currentGoalReflection.trim(),
+                    hotspotColdspotReflection: currentHotspotColdspot.trim(), 
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(), 
+                    engagementSnapshot: checklistSnapshot,
+                    transitionalGoalSnapshot: transitionalGoalSnapshot, 
+                    reflectionType: "Weekly Check-in"
+                };
+                
+                await historyCollectionRef.add(newReflection);
+                
+                setCurrentGoalReflection('');
+                setCurrentHotspotColdspot('');
+                setReflectionSaveMessage("Reflection saved successfully!");
+                setTimeout(() => setReflectionSaveMessage(''), 3000); 
+
+            } catch (error) {
+                console.error("Error writing new reflection document: ", error);
+                setReflectionSaveMessage(`Failed to save reflection. Error: ${error.message}`);
+            } finally {
+                setIsSavingReflection(false);
+            }
         };
 
-        // --- FINAL RENDER CALL (CRITICAL) ---
-        // This is the last step that tells React to take the App component and put it inside the <div id="root">
-        if (typeof firebase !== 'undefined' && firebase.auth) {
-            // When authentication state changes, re-render the application
-            // This ensures the application displays the AuthScreen when logged out, or the App when logged in.
-            firebase.auth().onAuthStateChanged((user) => {
-                const rootElement = document.getElementById('root');
-                if (rootElement) {
-                    ReactDOM.render(<App />, rootElement);
-                }
+
+        const handleDailyLogUpdate = async (dayKey) => {
+            if (!db || !userId || !strategyData) return;
+
+            setIsUpdatingLog(true);
+            const newDailyChecklist = {
+                ...strategyData.monitoring.dailyChecklist,
+                [dayKey]: !strategyData.monitoring.dailyChecklist[dayKey]
+            };
+
+            try {
+                // v8 method: .update()
+                const strategyDocRef = db.collection('artifacts').doc(FIREBASE_APP_ID).collection('users').doc(userId).collection('fullStrategyData').doc('userStrategy');
+                
+                await strategyDocRef.update({
+                    'monitoring.dailyChecklist': newDailyChecklist
+                });
+                
+                setStrategyData(prev => ({
+                    ...prev,
+                    monitoring: {
+                        ...prev.monitoring,
+                        dailyChecklist: newDailyChecklist
+                    }
+                }));
+            } catch (error) {
+                console.error("Error updating daily checklist:", error);
+            } finally {
+                setIsUpdatingLog(false);
+            }
+        };
+        
+        const dailyChecklist = strategyData?.monitoring?.dailyChecklist || getInitialStrategyState().monitoring.dailyChecklist;
+        const completedDays = daysOfWeekKeys.filter(day => dailyChecklist[day]).length;
+        const progressPercentage = Math.round((completedDays / 7) * 100);
+
+        const getProgressMessage = (percent) => {
+            if (percent === 100) return "Fantastic! 7/7 days engaged. You've been relentless!";
+            if (percent >= 70) return "Excellent engagement this week! Keep that momentum flowing.";
+            if (percent >= 40) return "Great work! You're building a strong habit. Let's aim for more!";
+            return "You're getting started! Every check counts toward your Wise Whale journey.";
+        };
+        
+        if (isLoadingData) {
+            return <div className="text-center p-10 text-lg font-medium text-blue-600">Loading Strategy Data...</div>;
+        }
+
+        const displayName = auth?.currentUser?.email?.split('@')[0] || 'Client';
+        const mockPrimaryGoal = "Define your transitional goal in the Strategy Builder."; 
+
+        return (
+            <div className="p-4 sm:p-8 max-w-4xl mx-auto bg-white rounded-xl shadow-2xl">
+                <h1 className="text-4xl font-extrabold text-blue-800 mb-2">Strategy Summary Dashboard</h1>
+                <p className="text-gray-600 mb-8">Welcome to your Personal Best workspace, **{displayName}**!</p>
+                
+                {/* Primary Transition Goal Check-in */}
+                <div className="mb-8 p-6 bg-indigo-50 rounded-lg shadow-md border-l-4 border-indigo-500">
+                    <h2 className="text-2xl font-bold text-indigo-700 mb-3">Goal Reflection & Tracking Log</h2>
+                    
+                    <h3 className="text-xl font-bold text-indigo-700 mt-4 mb-2">1. Transitional Goal Check-in</h3>
+                    <p className="text-sm font-semibold text-indigo-900 mb-4 border-b border-indigo-200 pb-2">
+                        Current Potential Goal: {strategyData?.transitionalGoal?.potential || mockPrimaryGoal}
+                    </p>
+                    <TextAreaField 
+                        label="Reflect on the progress of your primary goal this week:"
+                        value={currentGoalReflection}
+                        onChange={(e) => { setCurrentGoalReflection(e.target.value); setReflectionSaveMessage(''); }}
+                        placeholder="Enter your current thoughts and reflections on the progress of your primary goal here."
+                        rows={3}
+                    />
+                    
+                    <h3 className="text-xl font-bold text-teal-700 mt-6 mb-2 border-t pt-4">2. Hotspots/Coldspots Experience</h3>
+                    <TextAreaField 
+                        label="How have you been experiencing hotspot’s and coldspot’s, in the past week? Any insights or queries?"
+                        value={currentHotspotColdspot}
+                        onChange={(e) => { setCurrentHotspotColdspot(e.target.value); setReflectionSaveMessage(''); }}
+                        placeholder="E.g., Hotspots are up, especially with exercise. Coldspots decreased since I managed my device use. Insight:..."
+                        rows={3}
+                    />
+
+
+                    <div className="flex justify-between items-center mt-6">
+                        <button 
+                            onClick={handleSaveReflection}
+                            disabled={isSavingReflection || (!currentGoalReflection.trim() && !currentHotspotColdspot.trim())}
+                            className={`py-3 px-6 text-white rounded-xl shadow-lg transition-colors font-bold ${
+                                isSavingReflection ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
+                            }`}
+                        >
+                            {isSavingReflection ? 'Saving Log...' : 'Save Weekly Reflection Log'}
+                        </button>
+                        {reflectionSaveMessage && (
+                            <p className={`text-sm font-medium ${reflectionSaveMessage.startsWith('Failed') ? 'text-red-600' : 'text-green-600'}`}>
+                                {reflectionSaveMessage}
+                            </p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Reflection History (Records) */}
+                <div className="mb-8 p-6 bg-gray-100 rounded-lg shadow-md border-l-4 border-gray-400">
+                    <h2 className="text-2xl font-bold text-gray-700 mb-3">Reflection History (Records)</h2>
+                    {historyEntries.length === 0 ? (
+                        <p className="text-gray-500 italic">No historical reflections found. Use the section above to create your first record.</p>
+                    ) : (
+                        <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
+                            {historyEntries.map((entry, index) => (
+                                <div key={entry.id || index} className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm">
+                                    <p className="text-xs font-semibold text-indigo-600 mb-1">
+                                        {new Date(entry.timestamp).toLocaleDateString()} at {new Date(entry.timestamp).toLocaleTimeString()}
+                                    </p>
+                                    
+                                    <div className="text-xs text-gray-500 border-b pb-1 mb-2 italic">
+                                        Goal Snapshot (Potential): {entry.transitionalGoalSnapshot?.potential || 'N/A'}
+                                    </div>
+
+                                    <p className="text-sm font-semibold text-gray-800 whitespace-pre-wrap mb-1">Goal Reflection: {entry.goalReflectionText || 'N/A'}</p>
+                                    <p className="text-sm text-gray-700 whitespace-pre-wrap mb-2">H/C Reflection: {entry.hotspotColdspotReflection || 'N/A'}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Engagement Visualization */}
+                <div className="mb-8 p-6 bg-teal-50 rounded-lg shadow-xl border-l-4 border-teal-500">
+                    <h2 className="text-2xl font-bold text-teal-700 mb-3">Your Waves of Change</h2>
+                    <p className="text-gray-600 mb-4">Click to mark a day when you were **'pleased with attempts'** towards your goals.</p>
+                    {isUpdatingLog && <p className="text-sm text-center text-teal-600 mb-4">Updating log...</p>}
+
+                    <div className="flex justify-between items-center mb-6 max-w-md mx-auto">
+                        {daysOfWeekKeys.map((dayKey, index) => (
+                            <div key={dayKey} className="flex flex-col items-center">
+                                <label className="text-sm text-gray-600 mb-1">{daysOfWeekLabels[index]}</label>
+                                <input
+                                    type="checkbox"
+                                    checked={dailyChecklist[dayKey]}
+                                    onChange={() => handleDailyLogUpdate(dayKey)}
+                                    disabled={isUpdatingLog}
+                                    className="w-6 h-6 text-teal-600 bg-gray-100 border-gray-300 rounded focus:ring-teal-500 disabled:opacity-50"
+                                />
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="bg-teal-200 rounded-full h-8 overflow-hidden shadow-inner relative">
+                        <div 
+                            className="h-full bg-teal-500 transition-all duration-500 flex items-center justify-end pr-2"
+                            style={{ width: `${progressPercentage}%` }}
+                        >
+                             <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19.7 7.3c-.6-.7-1.5-1-2.4-1h-1.6c-1.3 0-2.6.4-3.6 1.2L10 8.9c-.8.6-1.9 1.4-2.8 1.4H4c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h3.2c1.7 0 3.3.6 4.6 1.7l.8.6c.9.7 2.1 1.2 3.4 1.2h1.7c.9 0 1.8-.3 2.5-1 .7-.7 1-1.6 1-2.5V8.8c0-.9-.3-1.8-1-2.5zM17 14h-1.6c-.7 0-1.4-.2-2-.5l-.8-.6c-1.3-1-3-1.6-4.8-1.6H4V9h6.2c1.8 0 3.5-.6 4.8-1.6l.8-.6c.7-.5 1.4-.7 2-.7H17v7z"/>
+                            </svg>
+                        </div>
+                         <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-teal-900 mix-blend-multiply">
+                            {progressPercentage}% Engaged
+                        </span>
+                    </div>
+                    
+                    <p className="mt-4 text-md font-semibold text-teal-800">
+                        <span className="font-extrabold">{completedDays} / 7 Days:</span> {getProgressMessage(progressPercentage)}
+                    </p>
+                </div>
+
+
+                {/* Core Action Buttons (Updated for your required flow) */}
+                <div className="grid sm:grid-cols-3 gap-6">
+                    <div className="p-4 bg-purple-100 rounded-lg shadow-md">
+                        <h3 className="text-lg font-bold text-purple-700 mb-2">Review Profile</h3>
+                        <button 
+                            onClick={onProfile} 
+                            className="mt-2 w-full py-3 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 transition-colors transform hover:scale-[1.01] active:scale-95"
+                        >
+                            Hotspots/Coldspots
+                        </button>
+                    </div>
+                    <div className="p-4 bg-blue-100 rounded-lg shadow-md">
+                        <h3 className="text-lg font-bold text-blue-700 mb-2">Goal Guidance</h3>
+                        <button 
+                            onClick={onGuidance}
+                            className="mt-2 w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors transform hover:scale-[1.01] active:scale-95"
+                        >
+                            Planning Framework
+                        </button>
+                    </div>
+                    <div className="p-4 bg-yellow-100 rounded-lg shadow-md border-2 border-yellow-300">
+                        <h3 className="text-lg font-bold text-yellow-700 mb-2">Strategy Canvas</h3>
+                        <button 
+                            onClick={onDefineStrategy} 
+                            className="mt-2 w-full py-3 bg-yellow-500 text-white font-semibold rounded-xl hover:bg-yellow-600 transition-colors transform hover:scale-[1.01] active:scale-95"
+                        >
+                            Define Plan
+                        </button>
+                    </div>
+                </div>
+                
+                {isModalOpen && <JournalQuestionsModal onClose={() => setIsModalOpen(false)} />}
+                
+                <div className="mt-10 mb-4 space-y-4">
+                    <button
+                        onClick={window.signOutUser}
+                        className="w-full py-2 px-6 text-sm font-medium rounded-xl text-red-600 bg-red-100 hover:bg-red-200 transition-colors border border-red-300"
+                    >
+                        Log Out (End Session)
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
+
+    // --- The NEW Main App Component (Renders the appropriate screen after login) ---
+    const App = ({ initialUserId }) => {
+        const [currentPage, setCurrentPage] = useState(SCREENS.PROFILE_QUESTIONS);
+        const userId = initialUserId;
+
+        const handleReturnToSummary = useCallback(() => setCurrentPage(SCREENS.STRATEGY_SUMMARY), []);
+        const handleProfileComplete = useCallback(() => setCurrentPage(SCREENS.GOAL_GUIDANCE), []);
+        const handleGuidanceComplete = useCallback(() => setCurrentPage(SCREENS.STRATEGY_SUMMARY), []);
+        const handleProfileReview = useCallback(() => setCurrentPage(SCREENS.PROFILE_QUESTIONS), []);
+        const handleGuidanceReview = useCallback(() => setCurrentPage(SCREENS.GOAL_GUIDANCE), []);
+        const handleDefineStrategy = useCallback(() => setCurrentPage(SCREENS.FULL_STRATEGY_BUILDER), []);
+
+        useEffect(() => {
+            // Logic to check if Profile is already saved (if so, skip to summary)
+            // This is complex for a quick fix, so we'll leave the flow as:
+            // Profile -> Guidance -> Summary on first login. User can navigate after.
+        }, []);
+
+        const renderContent = () => {
+            if (!userId) {
+                // Should not happen if AuthWrapper works, but provides a fallback
+                return <div className="text-center p-10 text-lg font-medium text-red-600">Error: User ID required for data operations. Please sign in again.</div>;
+            }
+
+            switch (currentPage) {
+                case SCREENS.PROFILE_QUESTIONS:
+                    // Flow: Profile -> Guidance. If reviewing, onNext goes to Guidance.
+                    return <ProfileQuestionsScreen userId={userId} onNext={handleGuidanceComplete} />; 
+                case SCREENS.GOAL_GUIDANCE:
+                    // Flow: Guidance -> Summary. If reviewing, onNext goes to Summary.
+                    return <GoalGuidanceScreen onNext={handleReturnToSummary} />; 
+                case SCREENS.STRATEGY_SUMMARY:
+                    // Dashboard view with links to all other sections
+                    return (
+                        <StrategySummaryScreen 
+                            userId={userId} 
+                            onDefineStrategy={handleDefineStrategy} 
+                            onProfile={handleProfileReview} 
+                            onGuidance={handleGuidanceReview}
+                        />
+                    ); 
+                case SCREENS.FULL_STRATEGY_BUILDER:
+                    return <FullStrategyBuilderScreen onComplete={handleReturnToSummary} />; 
+                default:
+                    return <div className="text-center p-10">Starting Application Flow...</div>;
+            }
+        };
+
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+                <div className="w-full">
+                    {renderContent()}
+                </div>
+            </div>
+        );
+    };
+
+    // --- AUTH SCREEN COMPONENT (Login/Welcome Gate) ---
+    const AuthScreen = ({ onSignIn, authError, email, setEmail, password, setPassword }) => (
+        <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+            <div className="w-full max-w-sm bg-white p-8 rounded-xl shadow-lg border border-gray-200">
+                <h1 className="text-3xl font-bold text-center text-blue-700 mb-6">Wise Whale Strategy Builder</h1>
+                <p className="text-center text-gray-500 mb-8">Secure Access for Clients</p>
+
+                <form onSubmit={onSignIn}>
+                    <InputField 
+                        label="Email Address" 
+                        id="email" 
+                        type="email"
+                        value={email} 
+                        onChange={(e) => setEmail(e.target.value)} 
+                        required={true}
+                        placeholder="client@example.com"
+                    />
+                    <InputField 
+                        label="Password" 
+                        id="password" 
+                        type="password"
+                        value={password} 
+                        onChange={(e) => setPassword(e.target.value)} 
+                        required={true}
+                        placeholder="••••••••"
+                    />
+
+                    {authError && (
+                        <p className="text-red-600 text-sm mb-4 bg-red-50 p-3 rounded border border-red-200">
+                            {authError}
+                        </p>
+                    )}
+
+                    <button 
+                        type="submit"
+                        className="w-full py-3 text-white font-bold bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-md mt-4"
+                    >
+                        Sign In
+                    </button>
+                </form>
+                
+                <p className="text-center text-sm text-gray-500 mt-6">
+                    This application is for **Authorized Clients Only**. Accounts are created manually by your therapist.
+                </p>
+            </div>
+        </div>
+    );
+    
+    // --- AUTH CHECKER WRAPPER (Your existing primary logic holder) ---
+    const AuthWrapper = () => {
+        const [user, setUser] = useState(null);
+        const [loading, setLoading] = useState(true);
+        const [authError, setAuthError] = useState('');
+        const [email, setEmail] = useState('');
+        const [password, setPassword] = useState('');
+        
+        // Listener for Firebase Auth state changes
+        useEffect(() => {
+            if (auth) {
+                const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+                    setUser(currentUser);
+                    setLoading(false);
+                });
+                return () => unsubscribe();
+            } else {
+                console.error("Firebase Auth is not loaded.");
+                setLoading(false);
+            }
+        }, []);
+        
+        const handleSignIn = (e) => {
+            e.preventDefault();
+            setAuthError('');
+            if (auth) {
+                auth.signInWithEmailAndPassword(email, password)
+                    .then(() => {
+                        setEmail('');
+                        setPassword('');
+                    })
+                    .catch(error => {
+                        if (error.code === 'auth/operation-not-allowed') {
+                            setAuthError('Account creation is disabled for this domain. Please contact your therapist.');
+                        } else {
+                            setAuthError('Sign in failed: ' + error.message);
+                        }
+                    });
+            }
+        };
+
+        if (loading) {
+            return (
+                <div className="flex items-center justify-center min-h-screen">
+                    <p className="text-xl text-gray-600">Loading application...</p>
+                </div>
+            );
+        }
+
+        if (!user) {
+            return (
+                <AuthScreen 
+                    onSignIn={handleSignIn}
+                    authError={authError}
+                    email={email}
+                    setEmail={setEmail}
+                    password={password}
+                    setPassword={setPassword}
+                />
+            );
+        }
+        
+        // When authenticated, render the main application passing the user ID
+        return <App initialUserId={user.uid} />;
+    };
+
+    // Global sign out function used by the React components
+    window.signOutUser = () => {
+        if(auth) {
+            auth.signOut().then(() => {
+                console.log("User signed out.");
+            }).catch((error) => {
+                console.error("Error signing out:", error);
             });
-        } else {
-             // FALLBACK for when Firebase fails to load (should show a visible error now instead of blank)
+        }
+    };
+
+
+    // --- FINAL RENDER CALL (CRITICAL) ---
+    if (typeof firebase !== 'undefined' && firebase.auth) {
+        // We now render the AuthWrapper which manages the state between login and the App itself
+        const renderApp = () => {
             const rootElement = document.getElementById('root');
             if (rootElement) {
-                 // Render a simple error message if React is running but Firebase is not found
-                 ReactDOM.render(
-                    <div style={{ padding: '50px', textAlign: 'center', color: '#B91C1C', backgroundColor: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '8px' }}>
-                        <h1>Initialization Error</h1>
-                        <p>The core application scripts (Firebase/Authentication) failed to load. Please check your network connection or the external script links in the HTML header.</p>
-                    </div>,
-                    rootElement
-                );
+                ReactDOM.render(<AuthWrapper />, rootElement);
             }
+        };
+
+        // Render immediately and again on auth state change (handled internally by AuthWrapper listener)
+        renderApp();
+    } else {
+         // FALLBACK for when Firebase fails to load
+        const rootElement = document.getElementById('root');
+        if (rootElement) {
+             ReactDOM.render(
+                <div style={{ padding: '50px', textAlign: 'center', color: '#B91C1C', backgroundColor: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '8px' }}>
+                    <h1>Initialization Error</h1>
+                    <p>The core application scripts (Firebase/Authentication) failed to load. Please check your network connection or the external script links in the HTML header.</p>
+                </div>,
+                rootElement
+            );
         }
+    }
+</script>
+
     </script>
 </body>
 </html>
