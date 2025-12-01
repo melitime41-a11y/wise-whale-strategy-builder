@@ -473,7 +473,7 @@
                 />
                 
                 <p className="text-sm text-gray-500 mt-8 mb-4">
-                    *(These details will populate your Strategy Summary Dashboard.)*
+                    *(These details will populate your Strategise Dashboard.)*
                 </p>
 
                 <button 
@@ -519,7 +519,7 @@
         coldspots: [
             { key: 'gossip', label: 'Gossip' },
             { key: 'deviceUse', label: 'Device use (excessive or mindless scrolling)' },
-            { key: 'procrastination', label: 'Procrastination or avoidance of necessary tasks' },
+            { key: 'procrastination', label: ' Procrastination or avoidance of necessary tasks' },
             { key: 'negativeSelfTalk', label: 'Negative or highly critical self-talk' },
             { key: 'socialWithdrawal', label: 'Excessive social withdrawal or isolation' },
             { key: 'perfectionism', label: 'Paralyzing perfectionism or fear of failure' },
@@ -587,9 +587,9 @@
 
         return (
             <div className="p-4 sm:p-8 max-w-4xl mx-auto bg-white rounded-xl shadow-2xl">
-                <h1 className="text-4xl font-extrabold text-blue-800 mb-1 border-b pb-2">Client Profile Intake: Your Inner Seas Map</h1>
+                <h1 className="text-4xl font-extrabold text-blue-800 mb-1 border-b pb-2"> Profile: Your Inner Seas Map</h1>
                 <p className="text-gray-600 mb-8">
-                    This section helps you build your **self-awareness map**. By charting your energy, you can navigate your journey with greater wisdom. Data is stored only on this browser/device.
+                    This categorical section helps you build a <strong>definitive self-awareness map</strong>. By charting your energy decisively, and with authority, you can navigate your journey with greater wisdom. (Data is stored only on this browser/device.)
                 </p>
 
                 <form onSubmit={handleSave}>
@@ -646,22 +646,27 @@
         const dispositions = ['Resilience', 'Emotional Strength', 'Resourcefulness', 'Cognitive Capabilities', 'Reflection', 'Strategic Awareness', 'Relating', 'Social Sophistication'];
         
         const tips = [
-            { heading: "Use your Wise Voice.", body: "Be realistic. Describe your goals and actions with **predictive and permissive sentences** to lower the pressure. Example: *Step 1: Laying foundations. I'm predicting increased tenacity and willpower gradually over the next few weeks.*" },
-            { heading: "Anchor Tasks and Context.", body: "Example: *I will use tenacity and willpower. Action 1: I'll set my alarm a few minutes earlier, allowing myself time to acknowledge my priority objectives and visualize myself carrying out tasks successfully with ease and flow.*" },
-            { heading: "Forecast for Breaks.", body: "Have you planned for **micro-breaks and macro-breaks**? A private moment to breathe (like the whale lifting itself with breath), time in nature, and hopefully a little sunshine. This allows for mental processing and helps you accommodate unforeseen components." },
+            // FIX APPLIED HERE: Replaced string quotes with template literal (backticks) to resolve the syntax error caused by internal quotes.
+            { 
+                heading: "Use your Wise Voice.", 
+                body: `Be realistic. Describe your goals and actions with predictive and permissive sentences to lower the pressure.
+			Example of Step: Better Evaluation. "I'm predicting increased tenacity and willpower gradually over the next few weeks with theses 3 actions outlined."` 
+            },
+            { heading: "Anchor Tasks and Context.", body: "Specify the task and location, timeframes, and perhaps people involved \"Example of Action 1: I will prepare for tenacity and willpower to cope with this specific difficult stage of work. I can set my alarm a few minutes earlier, allowing myself time to acknowledge my priority objectives and visualize myself carrying out tasks successfully with ease and flow.\"" },
+            { heading: "Forecast for Breaks.", body: "Have you planned for micro-breaks and macro-breaks? A private moment to breathe (like the whale lifting itself with breath), time in nature, and hopefully a little sunshine. This allows for mental processing and helps you accommodate unforeseen components." },
             { heading: "Clarify Coping Steps.", body: "Start with coping mechanisms you're already aware of, then allow some breathing space for other possibilities to emerge. Allow your thoughts to organize an efficient way to describe your plan." },
             { heading: "Use Directional & Measurable Language.", body: "For example, 'Raising the quantity of genuinely content moments' or 'raising/lowering intensity of...'" },
-            { heading: "Prioritize Balance and Health.", body: "Always remember your overarching golden goal: health and fitness. How can you meet other tasks associated with your zone with as much 'oomph'?" },
-            { heading: "Acknowledge the Temporary Nature of Efforts.", body: "Use language like: *'For now, I'm doing this and I'm looking at it this way because it helps my motivation.'* Remember, everything is impermanent." },
-            { heading: "Reflect on Acceptance.", body: "Address **limitations, tolerance, trust, and values** in your plan." },
-            { heading: "Build in Observational Plans.", body: "Create a plan A and a plan B. *'If I notice X about myself (a cold-spot rising), I'm going to take plan A. If I notice Y, I'll call on plan B (a hot-spot action).'*"},
-            { heading: "Sequential Steps.", body: "For each 'Personal Best' category, break down the process into a series of clear, **sequential steps**. Think of it like a blueprint for navigating your waters. Avoid jargon and focus on practical application." }
+            { heading: "Prioritize Balance and Health.", body: "Always remember your overarching golden goal: health and fitness. Create balance in your lifestyle by zooming in on each domain. If you notice a fixation or strengths in one or two particular domains, leverage this! How can you see this same 'oomph'? in other your other domains?" },
+            { heading: "Acknowledge the Temporary Nature of Efforts.", body: "Use language like: 'For now, I'm doing this and I'm looking at it this way because it helps my motivation.' Remember, everything is impermanent." },
+            { heading: "Reflect on Acceptance.", body: "Address limitations, tolerance, trust, and values in your plan. Updated evaluation helps to keep up with our constant companion Change" }, 
+            { heading: "Build in Observational Plans.", body: "Create a plan A with a plan B. 'If I notice X about myself (a cold-spot rising), I'm going to take plan A. If I notice Y, I'll call on plan B (a hot-spot action)."},
+            { heading: "Sequential Steps.", body: "When writting in each domain, break down the process for each 'Personal Best' into a series of clear, sequential steps. Think of it like a blueprint for navigating your waters. Avoid jargon and focus on practical application." }
         ];
 
         return (
             <div className="p-4 sm:p-8 max-w-4xl mx-auto bg-white rounded-xl shadow-2xl">
                 <h1 className="text-4xl font-extrabold text-blue-800 mb-4 border-b pb-2">Your Goal-Setting Compass 🧭</h1>
-                <p className="text-gray-600 mb-8">The Wise Whale helps you define effective, sustainable goals for your journey ahead.</p>
+                <p className="text-gray-600 mb-8">These notes from Wise Whale are intended as a guide towards safe creation of definitive effective, sustainable goals for your journey ahead. No pressure at all..feeling fantastic!.</p>
 
                 <div className="mb-10 p-6 bg-blue-50 rounded-lg border-l-4 border-blue-400">
                     <h2 className="text-2xl font-bold text-blue-700 mb-4">The S.M.A.R.T. Goal Framework</h2>
@@ -677,7 +682,7 @@
                 
                 <div className="mb-10 p-6 bg-green-50 rounded-lg border-l-4 border-green-400">
                     <h2 className="text-2xl font-bold text-green-700 mb-4">Developing Core Dispositions</h2>
-                    <p className="text-gray-700 mb-4">We are checking that your actions cultivate these essential inner resources:</p>
+                    <p className="text-gray-700 mb-4">Let's look for  actions that cultivate these essential inner resources:</p>
                     <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-sm font-medium text-green-800">
                         {dispositions.map((d, index) => (
                             <div key={index} className="flex items-center">
@@ -686,7 +691,7 @@
                         ))}
                     </div>
                     <p className="text-sm italic text-gray-500 mt-4 font-semibold">
-                        These dispositions are generated through **Sensitivity, Inclination, and Ability**—the perception, felt impetus, and basic capacity to follow through with a behavior.
+                        A clue to these treasurable dispositions is your <strong>Sensitivity, Inclination, and Ability</strong>—the perception, felt impetus, and basic capacity to follow through with a behavior.
                     </p>
                 </div>
 
@@ -743,7 +748,7 @@
         ];
 
         const checkInQuestions = [
-            'Are you able to achieve the action again, consistently? If not, what small adjustment is needed?',
+            'Are= you able to achieve the action again, consistently? If not, what small adjustment is needed?',
             'Are there any steps you would take out for good reason?',
             'Have your actions developed a stronger sense of how you manage your internal and external worlds?',
             "Is looking at the details separately helping you approach life with greater understanding and enjoyment?",
@@ -931,15 +936,15 @@
                 <WiseWhaleLogo />
                 <div className="flex justify-between items-start mb-2 border-b pb-2">
                     <div>
-                        <h1 className="text-4xl font-extrabold text-blue-800">Strategy Summary Dashboard</h1>
-                        <p className="text-gray-600">Welcome to your **Personal Best** workspace, **{displayName}**! (Data is local)</p>
+                        <h1 className="text-4xl font-extrabold text-blue-800">Strategise Dashboard</h1>
+                        <p className="text-gray-600">Welcome to your Personal Best's! workspace {displayName}! </p>
                     </div>
                 </div>
                 
                 {/* FIX 4: NEW Button Layout and Text */}
                 <div className="flex flex-col space-y-2 mb-8">
                     <p className="text-sm text-gray-600 font-medium">
-                        Download completed strategies to store or share. Logging out after each use increases privacy and confidentiality.
+                        Your Data is stored locally - on your device only.  Download completed strategies to store or share.  Logging out after each use increases privacy and confidentiality.
                     </p>
                     <div className="flex space-x-4">
                         <button
@@ -970,13 +975,13 @@
                 <div className="text-center mb-8 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
                     <h2 className="text-xl font-bold text-blue-800 mb-4">Author's Note (Melinda):</h2>
                     <div className="text-lg italic text-gray-700 leading-relaxed space-y-4 text-left px-2">
-                        <p>My philosophy is simple: Everybody finds purpose in taking good care of all they possess. This commitment to self-stewardship is realized across the four key domains of human function: our physical, mental, relational, and creative/productive experiences.</p>
+                        <p>My philosophy is simple: Everybody can find purpose and fulfillment in pursuit of taking good care. This commitment to self-stewardship is realized across the four key domains of human function: our physical, mental, relational, and creative/productive experiences.</p>
                         
-                        <p>This journey is not always straightforward; we are often "blinded" until focused time and clear intention illuminate the way. True insight requires separating and recognizing your subconscious thoughts, conscious actions, inner landscape, outer world, memories, and future foresight.</p>
+                        <p>This journey is not always straightforward; a large portion of our function operates without ones awareness,  "blinded" until allocated focused time and clear intention illuminate the way. True insight requires separating and recognizing your subconscious thoughts, conscious actions, inner landscape, outer world, memories, and future foresight.</p>
                         
-                        <p>More importantly, we need a workable system to fit all of this into our busy lives!</p>
+                        <p>More importantly, we need a workable system to fit practice's into our busy lives!</p>
                         
-                        <p>By consistently exercising all parts of ourselves, we tone, improve, and maintain our sense of value. Aiming for your Personal Best in these areas is not about ego—it provides the clear, infinite direction for progress.</p>
+                        <p>By consistently exercising all parts of ourselves, we tone, improve, and maintain them and instill a sense of value. Aiming for your Personal Best's in these areas is not about ego—it provides the clear, infinite direction for progress.</p>
                         
                         <p>As you engage in self-observation and self-evaluation here, I hope you find S.M.A.R.T. goals and simple steps with actions that are genuinely enjoyable and rewarding. This is the path to less stress, more success.</p>
                         
@@ -1146,7 +1151,7 @@
                     <p>Strategise for Personal Best’s Application</p>
                     <p>{BUSINESS_DETAILS.copyright}</p>
                     <p>
-                        No part of this article may be reproduced without written permission from the publisher. Not written, electronic or any other means. If you wish to use any part of this book, permission to do so can be requested by contacting the publisher in writing:
+                        This application is for your personal use only. No part of this application may be reproduced in any form without written permission from the publisher. For information about permission to reproduce selections from this application, please email:
                     </p>
                     <p className="font-semibold text-gray-600">{BUSINESS_DETAILS.email}</p>
                     <p>{BUSINESS_DETAILS.address}</p>
@@ -1238,7 +1243,7 @@
                     <h5 className={`text-lg font-bold ${textClass} mb-3`}>Goal Alignment Evaluation:</h5>
                     <p className="text-sm text-gray-700 mb-3">
                         **How are you going with these steps and actions?** Have you detected improvements in your daily rhythms? Are skills and abilities blooming?
-                        If they’re not, **breathe deep**. On the exhale, dive deeper for more details, explore for new approaches. This could be a **proximal zone**, and guidance from someone trusted could help. Recognising these zones is the first stage of change. **“Chin up, eyes on the horizon.”** </p>
+                        If they’re not, **breathe deep**. On the exhale, dive deeper for more details, explore for new approaches. This could be a **proximal zone**, and guidance from someone trusted could help. Recognising these zones is the first stage of change. ..“Chin up!! eyes on the horizon.”.. </p>
                     {domainData.actions.map(action => (
                         <TextAreaField
                             key={`eval-${action.id}`}
@@ -1516,13 +1521,13 @@
 
         return (
             <div className="p-4 sm:p-8 max-w-4xl mx-auto bg-white rounded-xl shadow-2xl">
-                <h1 className="text-4xl font-extrabold text-yellow-700 mb-2 border-b pb-2">Strategy Canvas Builder ⚓️</h1>
-                <p className="text-gray-600 mb-8">Define your Transitional Goal and the actions for each Personal Best domain. **Breathe deep and write direct.**</p>
+                <h1 className="text-4xl font-extrabold text-yellow-700 mb-2 border-b pb-2">Strategy Canvas  ⚓️</h1>
+                <p className="text-gray-600 mb-8">Define your Transitional Goal and the actions for each Personal Best domain...Breathe deep and write direct..</p>
 
                 <form onSubmit={handleSave}>
                     {/* Transitional Goal Section */}
                     <div id="transitional-goal" className="mb-10 p-6 bg-blue-50 rounded-xl shadow-lg border-l-4 border-blue-500">
-                        <h2 className="text-2xl font-bold text-blue-700 mb-4">I. Transitional Goal Definition (Navigating the Waters)</h2>
+                        <h2 className="text-2xl font-bold text-blue-700 mb-4">I. Transitional Goal  (Set your coordinates)</h2>
                         <TextAreaField 
                             label="1. Current Position (Where are you now?):"
                             name="current"
