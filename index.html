@@ -13,46 +13,52 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics-compat.js"></script>
 
-    <style>
-        /* Apply Inter font and subtle background texture */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f4f7f9; /* Light gray/blue background */
+	    <style>
+                /* Apply Inter font and soothing background */
+				    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #ffffff; /* Clean white for a high-end, smooth look */
+        color: #334155;
+    }
+
+        
+        /* The "Soft Appearance" Domain Card Styles */
+        .domain-card {
+            transition: all 0.3s ease;
+            border-radius: 1.5rem;
+            border-width: 2px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
         }
         
-        /* Custom scrollbar for better look (optional, but nice) */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+        /* Pastel Palette */
+        .domain-physical { background-color: #f0fff4; border-color: #c6f6d5; } /* Mint */
+        .domain-productive { background-color: #fffaf0; border-color: #feebc8; } /* Peach */
+        .domain-relational { background-color: #ebf8ff; border-color: #bee3f8; } /* Sky */
+        .domain-cognitive { background-color: #f5f3ff; border-color: #e9d8fd; } /* Lavender */
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Smooth scroll for "Canvas-First" navigation */
+        html { scroll-behavior: smooth; }
+
+        /* Cold-Spot Companion Input focus (Standard one-line logic) */
+        .companion-input {
+            touch-action: manipulation;
+            font-size: 16px; /* Prevents auto-zoom on mobile */
         }
 
-        /* Focus on accessibility and mobile keyboard smoothness */
-        input:focus, textarea:focus {
-            -webkit-overflow-scrolling: auto; 
-            scroll-behavior: auto;
-        }
-        
-        /* Smooth scroll behavior for tab navigation */
-        html {
-            scroll-behavior: smooth;
-        }
-
-        /* Styling to center the sign-in form when it is active */
         #signInWrapper {
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #f4f7f9;
         }
-    </style>
 
+    </style>
+	 
     <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -283,16 +289,13 @@
         copyright: "Copyright ©️ WISE WHALE PSYCHOTHERAPY 2025. All rights reserved."
     };
     
-    const SCREENS = {
+	    const SCREENS = {
         WELCOME: 'welcome', 
         PROFILE_QUESTIONS: 'profileQuestions', 
         GOAL_GUIDANCE: 'goalGuidance', 
         STRATEGY_SUMMARY: 'strategySummary', 
         FULL_STRATEGY_BUILDER: 'fullStrategyBuilder',
     };
-    
-    // ... (rest of your original STRATEGY_CONTENT, getInitialDomainState, getInitialStrategyState remains unchanged) ...
-    // Note: I am omitting the large component bodies here for brevity, assuming they are placed directly here.
 
     const initialActionState = { 
         summary: '', 
@@ -307,19 +310,23 @@
     const STRATEGY_CONTENT = {
         'Physical Flow': { 
             title: 'Physical Flow', color: 'bg-green-100', text: 'text-green-800', border: 'border-green-400', key: 'physicalFlow',
-            guidance: "Focus on your relationship with your body, movement, and environment. Think about kinetic awareness, establishing consistent daily rhythms, and how your physical space supports (or hinders) your energy."
+            guidance: "Focus on your relationship with your body, movement, and environment. Think about kinetic awareness and daily rhythms."
         },
-        'Productive & Creative Currents': { 
-            title: 'Productive & Creative Currents', color: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-400', key: 'productiveCreative',
-            guidance: "This domain addresses how you manage time, set priorities, and channel your energy into meaningful work or creative expression. The goal is to find your 'flow state'—that balance of challenge and skill."
-        },
+            'Productive & Creative Currents': { 
+        title: 'Productive & Creative Currents', 
+        color: 'bg-amber-50', // Softened from yellow to amber wash
+        text: 'text-amber-700', // The "Golden" professional heading color
+        border: 'border-amber-300', 
+        key: 'productiveCreative',
+        guidance: "Address time management, priorities, and channeling energy into meaningful work or creative expression."
+    },
         'Tidal Connections of Inter/Intrapersonal Relationships': { 
             title: 'Tidal Connections of Inter/Intrapersonal Relationships', color: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-400', key: 'tidalConnections',
-            guidance: "Define your relational goals. This includes setting clear boundaries, practicing effective communication, fostering genuine emotional support, and balancing your need for connection with your need for personal space."
+            guidance: "Define relational goals, boundaries, communication, and balancing connection with personal space."
         },
         'Cognitive & Mental Depth & Agility': { 
             title: 'Cognitive & Mental Depth & Agility', color: 'bg-indigo-100', text: 'text-indigo-800', border: 'border-indigo-400', key: 'cognitiveMental',
-            guidance: "Focus on metacognition (thinking about thinking). Goals here involve emotional regulation, managing stress responses, recognizing cognitive distortions, and developing mental resilience and adaptability."
+            guidance: "Focus on metacognition, emotional regulation, managing stress, and developing mental resilience."
         },
     };
 
@@ -354,34 +361,21 @@
         }
     });
 
-    const WiseWhaleLogo = () => (
-        <svg 
-            viewBox="0 0 100 100" 
-            className="w-16 h-16 mx-auto mb-4" 
-            xmlns="http://www.w3.org/2000/svg"
-        >
-            <defs>
-                <linearGradient id="whaleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style={{stopColor:'rgb(28, 126, 214)', stopOpacity:1}} />
-                    <stop offset="100%" style={{stopColor:'rgb(52, 211, 153)', stopOpacity:1}} />
-                </linearGradient>
-            </defs>
-            <g fill="url(#whaleGradient)">
-                <path d="M 30 50 C 35 40, 50 35, 60 40 C 65 45, 65 55, 60 60 C 50 65, 35 60, 30 50 Z" />
-                <circle cx="20" cy="50" r="5" />
-                <circle cx="30" cy="80" r="5" />
-                <circle cx="50" cy="90" r="5" />
-                <circle cx="70" cy="80" r="5" />
-                <circle cx="80" cy="50" r="5" />
-                <circle cx="70" cy="20" r="5" />
-                <circle cx="50" cy="10" r="5" />
-                <circle cx="30" cy="20" r="5" />
-                <path d="M 25 50 Q 40 50, 50 50 L 50 50 Q 60 50, 75 50" stroke="url(#whaleGradient)" strokeWidth="5" fill="none" strokeLinecap="round"/>
-                <path d="M 50 10 L 40 40 L 60 40 L 50 10" opacity="0.1"/> 
-                <path d="M 50 90 L 40 60 L 60 60 L 50 90" opacity="0.1"/> 
-            </g>
-        </svg>
+	    const WiseWhaleLogo = () => (
+        <div className="flex justify-center mb-6 pt-4">
+            <div className="relative group">
+                {/* Sunlight Glow: Warm Amber/Gold instead of Grey */}
+                <div className="absolute inset-0 bg-amber-200 blur-3xl rounded-full scale-125 opacity-40 animate-pulse"></div>
+                <img 
+                    src="https://i.postimg.cc/Bvfx0Ywz/IMG-1424.png" 
+                    alt="Personal Bests Icon" 
+                    className="relative w-32 h-32 md:w-36 md:h-36 object-contain rounded-full border-2 border-white shadow-lg bg-white"
+                    style={{ imageRendering: 'high-quality' }} // Extra boost for sharpness
+                />
+            </div>
+        </div>
     );
+
     
     const InputField = ({ label, type = 'text', value, onChange, required, maxLength, placeholder, rows = 1, name, placeholderColor = 'placeholder-gray-400' }) => (
         <div className="mb-4">
@@ -433,18 +427,22 @@
 
         return (
             <div className="p-4 sm:p-8 max-w-4xl mx-auto bg-white rounded-xl shadow-2xl">
-                <WiseWhaleLogo />
-                <h1 className="text-4xl font-extrabold text-blue-800 mb-2 border-b pb-2 text-center">Wise Whale Psychotherapy</h1>
-                
-                <div className="text-center mb-8 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-                    <p className="text-xl font-semibold text-blue-800 mb-4">
-                        Strategise for Personal Best’s Application
-                    </p>
-                    <p className="text-gray-700 text-sm leading-relaxed">
-                        **Welcome!** This screen collects the initial data needed to start your Strategy Builder. 
-                    </p>
-                </div>
-                
+				    const WiseWhaleLogo = () => (
+        <div className="flex justify-center mb-6 pt-4">
+            <div className="relative group">
+                {/* Sunlight Glow: Warm Amber/Gold instead of Grey */}
+                <div className="absolute inset-0 bg-amber-200 blur-3xl rounded-full scale-125 opacity-40 animate-pulse"></div>
+                <img 
+                    src="https://i.postimg.cc/Bvfx0Ywz/IMG-1424.png" 
+                    alt="Personal Bests Icon" 
+                    className="relative w-32 h-32 md:w-36 md:h-36 object-contain rounded-full border-2 border-white shadow-lg bg-white"
+                    style={{ imageRendering: 'high-quality' }} // Extra boost for sharpness
+                />
+            </div>
+        </div>
+    );
+
+   
                 <h2 className="text-2xl font-bold text-gray-700 mb-4 border-b pb-2">Your Initial Focus</h2>
                 <InputField
                     label="Your Preferred Name:"
@@ -548,7 +546,12 @@
         
         const [isSaving, setIsSaving] = useState(false);
         const [saveError, setSaveError] = useState(null);
-
+// --- REAL-TIME AUTO-SAVE (PROFILE DRAFTS) ---
+    useEffect(() => {
+        if (userId && profileData) {
+            saveToLocal(`profileData_${userId}`, profileData);
+        }
+    }, [profileData, userId]);
         const handleChange = (section, key, value) => {
             setProfileData(prev => ({
                 ...prev,
@@ -587,14 +590,51 @@
 
         return (
             <div className="p-4 sm:p-8 max-w-4xl mx-auto bg-white rounded-xl shadow-2xl">
-                <h1 className="text-4xl font-extrabold text-blue-800 mb-1 border-b pb-2"> Profile: Your Inner Seas Map</h1>
-                <p className="text-gray-600 mb-8">
-                    This categorical section helps you build a <strong>definitive self-awareness map</strong>. By charting your energy decisively, and with authority, you can navigate your journey with greater wisdom. (Data is stored only on this browser/device.)
-                </p>
+        <div className="flex justify-center mb-6 pt-4">
+            <div className="relative group">
+                {/* Sunlight Glow: Warm Amber/Gold instead of Grey */}
+                <div className="absolute inset-0 bg-amber-200 blur-3xl rounded-full scale-125 opacity-40 animate-pulse"></div>
+                <img 
+                    src="https://i.postimg.cc/Bvfx0Ywz/IMG-1424.png" 
+                    alt="Personal Bests Icon" 
+                    className="relative w-32 h-32 md:w-36 md:h-36 object-contain rounded-full border-2 border-white shadow-lg bg-white"
+                    style={{ imageRendering: 'high-quality' }} // Extra boost for sharpness
+                />
+            </div>
+        </div>
+
+	         {/* Centered Heading and Intro */}
+    <div className="text-center mb-10">
+        <h1 className="text-4xl font-extrabold text-blue-800 mb-4 border-b-2 border-blue-50 pb-4 inline-block">
+            Profile: Your Inner Seas Map 🐋
+        </h1>
+        <p className="text-gray-600 max-w-2xl mx-auto leading-relaxed mt-4">
+            This categorical section helps you build a <strong>definitive self-awareness map</strong>. 
+            By charting your energy decisively, and with authority, you can navigate your journey with 
+            greater wisdom. <span className="italic text-sm text-slate-400 block mt-2">(Data is stored only on this browser/device.)</span>
+        </p>
+    </div>
+	
+    {/* Identity & Theme Anchor */}
+    <div className="mb-10 p-6 bg-slate-50 rounded-2xl border-2 border-slate-100 shadow-inner">
+        <h2 className="text-xl font-bold text-slate-700 mb-4">Identity & Theme</h2>
+        <InputField
+            label="Your Preferred Name:"
+            value={profileData.preferredName || ''}
+            onChange={(e) => setProfileData({...profileData, preferredName: e.target.value})}
+            placeholder="How shall we address you?"
+        />
+        <InputField
+            label="Overall Theme of Transition:"
+            value={profileData.themeTitle || ''}
+            onChange={(e) => setProfileData({...profileData, themeTitle: e.target.value})}
+            placeholder="E.g., Career Change, Health Focus..."
+        />
+    </div>
 
                 <form onSubmit={handleSave}>
                     <div className="bg-green-50 p-6 rounded-xl shadow-inner mb-10 border border-green-200">
-                        <h2 className="text-3xl font-bold text-green-700 mb-4">Hotspots (Energy & Deep Support) 🌊</h2>
+                        <h2 className="text-3xl font-bold text-green-700 mb-4">Hotspots (Energy & Deep Support)</h2>
                         <p className="text-gray-700 italic mb-4">These are the currents that lift you. Describe them in detail to anchor their power.</p>
                         {profileQuestionsStructure.hotspots.map(({ key, label }) => (
                             <TextAreaField 
@@ -610,7 +650,7 @@
                     </div>
 
                     <div className="bg-red-50 p-6 rounded-xl shadow-inner border border-red-200">
-                        <h2 className="text-3xl font-bold text-red-700 mb-4">Cold-spots (Obstacles & Energy Drain) ⚓️</h2>
+                        <h2 className="text-3xl font-bold text-red-700 mb-4">Cold-spots (Obstacles & Energy Drain) </h2>
                         <p className="text-gray-700 italic mb-4">Identify the anchors or leaks. Recognising them is the first step to lifting them.</p>
                         {profileQuestionsStructure.coldspots.map(({ key, label }) => (
                              <TextAreaField 
@@ -641,90 +681,76 @@
         );
     };
 
-    const GoalGuidanceScreen = ({ onNext }) => {
+	
+	    const GoalGuidanceScreen = ({ onNext }) => {
         const smartGoals = ['Specific', 'Measurable', 'Achievable', 'Relevant', 'Time-bound'];
         const dispositions = ['Resilience', 'Emotional Strength', 'Resourcefulness', 'Cognitive Capabilities', 'Reflection', 'Strategic Awareness', 'Relating', 'Social Sophistication'];
-        
         const tips = [
-            // FIX APPLIED HERE: Replaced string quotes with template literal (backticks) to resolve the syntax error caused by internal quotes.
-            { 
-                heading: "Use your Wise Voice.", 
-                body: `Be realistic. Describe your goals and actions with predictive and permissive sentences to lower the pressure.
-			Example of Step: Better Evaluation. "I'm predicting increased tenacity and willpower gradually over the next few weeks with theses 3 actions outlined."` 
-            },
-            { heading: "Anchor Tasks and Context.", body: "Specify the task and location, timeframes, and perhaps people involved \"Example of Action 1: I will prepare for tenacity and willpower to cope with this specific difficult stage of work. I can set my alarm a few minutes earlier, allowing myself time to acknowledge my priority objectives and visualize myself carrying out tasks successfully with ease and flow.\"" },
-            { heading: "Forecast for Breaks.", body: "Have you planned for micro-breaks and macro-breaks? A private moment to breathe (like the whale lifting itself with breath), time in nature, and hopefully a little sunshine. This allows for mental processing and helps you accommodate unforeseen components." },
-            { heading: "Clarify Coping Steps.", body: "Start with coping mechanisms you're already aware of, then allow some breathing space for other possibilities to emerge. Allow your thoughts to organize an efficient way to describe your plan." },
-            { heading: "Use Directional & Measurable Language.", body: "For example, 'Raising the quantity of genuinely content moments' or 'raising/lowering intensity of...'" },
-            { heading: "Prioritize Balance and Health.", body: "Always remember your overarching golden goal: health and fitness. Create balance in your lifestyle by zooming in on each domain. If you notice a fixation or strengths in one or two particular domains, leverage this! How can you see this same 'oomph'? in other your other domains?" },
-            { heading: "Acknowledge the Temporary Nature of Efforts.", body: "Use language like: 'For now, I'm doing this and I'm looking at it this way because it helps my motivation.' Remember, everything is impermanent." },
-            { heading: "Reflect on Acceptance.", body: "Address limitations, tolerance, trust, and values in your plan. Updated evaluation helps to keep up with our constant companion Change" }, 
-            { heading: "Build in Observational Plans.", body: "Create a plan A with a plan B. 'If I notice X about myself (a cold-spot rising), I'm going to take plan A. If I notice Y, I'll call on plan B (a hot-spot action)."},
-            { heading: "Sequential Steps.", body: "When writting in each domain, break down the process for each 'Personal Best' into a series of clear, sequential steps. Think of it like a blueprint for navigating your waters. Avoid jargon and focus on practical application." }
+            { heading: "Use your Wise Voice", body: "Be realistic. Describe goals with predictive and permissive sentences. Example: 'I'm predicting increased tenacity gradually over the next few weeks.'" },
+            { heading: "Anchor Tasks and Context", body: "Specify the task, location, and timeframe. Example: 'I will prepare for willpower by setting my alarm earlier to acknowledge my objectives.'" },
+            { heading: "Forecast for Breaks", body: "Plan for micro-breaks. A moment to breathe (like the whale) and time in nature allows for mental processing." },
+            { heading: "Clarify Coping Steps", body: "Start with mechanisms you're already aware of, then allow space for other possibilities to emerge." },
+            { heading: "Prioritize Balance", body: "Create lifestyle balance. If you notice strengths in one domain, leverage that same 'oomph' in others." }
         ];
 
         return (
-            <div className="p-4 sm:p-8 max-w-4xl mx-auto bg-white rounded-xl shadow-2xl">
-                <h1 className="text-4xl font-extrabold text-blue-800 mb-4 border-b pb-2">Your Goal-Setting Compass 🧭</h1>
-                <p className="text-gray-600 mb-8">These notes from Wise Whale are intended as a guide towards safe creation of definitive effective, sustainable goals for your journey ahead. No pressure at all..feeling fantastic!.</p>
+            <div className="p-4 sm:p-8 max-w-4xl mx-auto bg-white rounded-xl shadow-2xl text-center">
+                <div className="flex justify-center mb-6">
+                    <WiseWhaleLogo />
+                </div>
+                
+                <h1 className="text-4xl font-extrabold text-blue-800 mb-6 border-b pb-2">Author's Note & Philosophy</h1>
+                
+                <div className="text-lg italic text-gray-700 leading-relaxed space-y-4 mb-10 text-left px-4">
+                    <p>My philosophy is simple: Everybody can find purpose and fulfillment in pursuit of taking good care. This commitment to self-stewardship is realized across the four key domains of human function: our physical, mental, relational, and creative/productive experiences.</p>
+                    <p>True insight requires separating and recognizing your subconscious thoughts, conscious actions, inner landscape, outer world, memories, and future foresight.</p>
+                    <p>By consistently exercising all parts of ourselves, we tone, improve, and maintain them and instill a sense of value. Aiming for your Personal Best's in these areas provides the clear, infinite direction for progress.</p>
+                </div>
 
-                <div className="mb-10 p-6 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-                    <h2 className="text-2xl font-bold text-blue-700 mb-4">The S.M.A.R.T. Goal Framework</h2>
-                    <p className="text-gray-700 italic mb-4">Let's ensure your goals are well-defined for clear sailing.</p>
+                <div className="mb-10 p-6 bg-blue-50 rounded-lg border-l-4 border-blue-400 text-left">
+                    <h2 className="text-2xl font-bold text-blue-700 mb-4">The S.M.A.R.T. Framework</h2>
                     <ul className="space-y-2">
                         {smartGoals.map((goal, index) => (
                             <li key={index} className="text-gray-700 font-semibold flex items-center">
-                                <span className="text-blue-500 mr-3 text-xl">&#9679;</span> **{goal}**
+                                <span className="text-blue-500 mr-3 text-xl">•</span> {goal}
                             </li>
                         ))}
                     </ul>
                 </div>
                 
-                <div className="mb-10 p-6 bg-green-50 rounded-lg border-l-4 border-green-400">
+                <div className="mb-10 p-6 bg-green-50 rounded-lg border-l-4 border-green-400 text-left">
                     <h2 className="text-2xl font-bold text-green-700 mb-4">Developing Core Dispositions</h2>
-                    <p className="text-gray-700 mb-4">Let's look for  actions that cultivate these essential inner resources:</p>
                     <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-sm font-medium text-green-800">
                         {dispositions.map((d, index) => (
                             <div key={index} className="flex items-center">
-                                <span className="text-green-500 mr-2">&#10003;</span> {d}
+                                <span className="text-green-500 mr-2">✓</span> {d}
                             </div>
                         ))}
                     </div>
-                    <p className="text-sm italic text-gray-500 mt-4 font-semibold">
-                        A clue to these treasurable dispositions is your <strong>Sensitivity, Inclination, and Ability</strong>—the perception, felt impetus, and basic capacity to follow through with a behavior.
-                    </p>
                 </div>
 
-                <div className="mb-10 p-6 bg-yellow-50 rounded-lg border-l-4 border-yellow-400">
-                    <h2 className="text-2xl font-bold text-yellow-700 mb-4">Wise Planning Tips (Clarity is Kindness)</h2>
+                <div className="mb-10 p-6 bg-yellow-50 rounded-lg border-l-4 border-yellow-400 text-left">
+                    <h2 className="text-2xl font-bold text-yellow-700 mb-4">Wise Planning Tips</h2>
                     <ul className="space-y-6">
                         {tips.map((tip, index) => (
                             <li key={index} className="text-gray-700 border-b pb-2 last:border-b-0">
-                                <h4 className="text-lg font-extrabold text-yellow-700 mb-1">
-                                    <span className="font-bold mr-2">{index + 1}.</span> {tip.heading}
-                                </h4>
-                                <p className="ml-5 mt-1">{tip.body}</p>
+                                <h4 className="text-lg font-bold text-yellow-700 mb-1">{tip.heading}</h4>
+                                <p className="ml-2">{tip.body}</p>
                             </li>
                         ))}
                     </ul>
-
-                    <h3 className="text-xl font-bold text-yellow-700 mt-8 mb-4 pt-4 border-t border-yellow-200">Reflect on Acceptance:</h3>
-                    <div className="space-y-3 text-gray-700">
-                        <p className="font-semibold">&#9679; Which responsibilities and limitations are truly yours? Can you accept them?</p>
-                        <p className="font-semibold">&#9679; What are you truly willing to do to move forward?</p>
-                        <p className="font-semibold">&#9679; Do you need to redistribute your energy more effectively to improve a range of Personal Best’s?</p>
-                    </div>
                 </div>
 
                 <button 
                     onClick={onNext}
-                    className="w-full py-4 mt-8 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 transition-colors transform hover:scale-[1.005] active:scale-98"
+                    className="w-full py-4 mt-8 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 transition-all"
                 >
-                    I'm Ready to Define My Strategy Canvas &rarr;
+                    I'm Ready to Define My Strategy Canvas
                 </button>
             </div>
         );
     };
+
 
     const JournalQuestionsModal = ({ onClose }) => {
         const observationQuestions = [
@@ -809,367 +835,196 @@
         );
     };
 
-
     const StrategySummaryScreen = ({ userId, onDefineStrategy, onProfile, onGuidance }) => {
         const [isModalOpen, setIsModalOpen] = useState(false);
-        // Load strategy data for display/editing the name/theme/date
         const [strategyData, setStrategyData] = useState(loadFromLocal(`strategyData_${userId}`, getInitialStrategyState()));
 
-        const [currentGoalReflection, setCurrentGoalReflection] = useState(''); 
-        const [currentHotspotColdspot, setCurrentHotspotColdspot] = useState(''); 
+        // --- REAL-TIME DRAFT STATES ---
+        // We load from a "draft" key so your work stays even if you don't click "Anchor"
+        const [currentGoalReflection, setCurrentGoalReflection] = useState(loadFromLocal(`draft_goal_${userId}`, '')); 
+        const [currentPlanBReflection, setCurrentPlanBReflection] = useState(loadFromLocal(`draft_planB_${userId}`, ''));
+        const [currentHotspotColdspot, setCurrentHotspotColdspot] = useState(loadFromLocal(`draft_hc_${userId}`, '')); 
+        
         const [isSavingReflection, setIsSavingReflection] = useState(false);
         const [reflectionSaveMessage, setReflectionSaveMessage] = useState('');
-        
-        // Loading History
         const [historyEntries, setHistoryEntries] = useState(loadFromLocal(`reflectionHistory_${userId}`, []));
         
+        // --- REAL-TIME AUTO-SAVE (DRAFTS) ---
+        // This effect saves your words as you type, protecting against "brain strain" or lost sessions.
+        useEffect(() => {
+            saveToLocal(`draft_goal_${userId}`, currentGoalReflection);
+            saveToLocal(`draft_planB_${userId}`, currentPlanBReflection);
+            saveToLocal(`draft_hc_${userId}`, currentHotspotColdspot);
+        }, [currentGoalReflection, currentPlanBReflection, currentHotspotColdspot, userId]);
+
         const daysOfWeekKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
-        // Handler for name/theme/date inputs on this screen
         const handleStrategyChange = (e) => {
             const { name, value } = e.target;
-            const updatedStrategy = {
-                ...strategyData,
-                [name]: value
-            };
+            const updatedStrategy = { ...strategyData, [name]: value };
             setStrategyData(updatedStrategy);
-            saveToLocal(`strategyData_${userId}`, updatedStrategy); // Save immediately on change
+            saveToLocal(`strategyData_${userId}`, updatedStrategy);
         };
 
-
         const handleSaveReflection = () => {
-            if (!userId || (!currentGoalReflection.trim() && !currentHotspotColdspot.trim())) {
-                setReflectionSaveMessage("Reflection log cannot be completely empty. Share your insights!");
+            if (!userId || (!currentGoalReflection.trim() && !currentPlanBReflection.trim() && !currentHotspotColdspot.trim())) {
+                setReflectionSaveMessage("Reflection log cannot be empty. Share your insights!");
                 return;
             }
 
             setIsSavingReflection(true);
-            setReflectionSaveMessage('');
             
-            // Collect the status of all domains for the snapshot
-            const domainChecklistSnapshot = Object.keys(strategyData.domains).reduce((acc, domainKey) => {
-                // Also capture the 'pleased' and 'goalAlignmentEvaluation' status for all actions
-                acc[domainKey] = {
-                    dailyChecklist: strategyData.domains[domainKey].dailyChecklist,
-                    actionStatus: strategyData.domains[domainKey].actions.map(a => ({ 
-                        id: a.id, 
-                        pleased: a.pleased, 
-                        evaluation: a.goalAlignmentEvaluation 
-                    }))
-                };
-                return acc;
-            }, {});
-
-            const transitionalGoalSnapshot = strategyData.transitionalGoal; 
-
             try {
                 const newReflection = {
                     id: Date.now().toString(), 
                     goalReflectionText: currentGoalReflection.trim(),
-                    hotspotColdspotReflection: currentHotspotColdspot.trim(), // Save the Coldspot reflection
-                    timestamp: new Date().getTime(), 
-                    engagementSnapshot: domainChecklistSnapshot, 
-                    transitionalGoalSnapshot: transitionalGoalSnapshot, 
+                    planBReflectionText: currentPlanBReflection.trim(), // Plan B Anchored!
+                    hotspotColdspotReflection: currentHotspotColdspot.trim(),
+                    timestamp: new Date().getTime(),
                     reflectionType: "Weekly Check-in"
                 };
                 
-                // Correctly updating and saving the history array
                 const updatedHistory = [newReflection, ...historyEntries];
                 setHistoryEntries(updatedHistory);
                 saveToLocal(`reflectionHistory_${userId}`, updatedHistory);
                 
+                // Clear Drafts & Fields after a successful Anchor
                 setCurrentGoalReflection('');
+                setCurrentPlanBReflection('');
                 setCurrentHotspotColdspot('');
-                setReflectionSaveMessage("Reflection saved successfully! You've anchored your insights. (Local)");
+                removeLocal(`draft_goal_${userId}`);
+                removeLocal(`draft_planB_${userId}`);
+                removeLocal(`draft_hc_${userId}`);
+
+                setReflectionSaveMessage("Insight anchored successfully 🐋");
                 
-                // Clear the checklist state in the main strategy data after saving a reflection
+                // (Resetting weekly checks logic remains the same)
                 const resetDomains = Object.keys(strategyData.domains).reduce((acc, domainKey) => {
                     const resetChecklist = daysOfWeekKeys.reduce((dAcc, day) => ({ ...dAcc, [day]: false }), {});
-                    acc[domainKey] = {
-                        ...strategyData.domains[domainKey],
-                        dailyChecklist: resetChecklist
-                    };
+                    acc[domainKey] = { ...strategyData.domains[domainKey], dailyChecklist: resetChecklist };
                     return acc;
                 }, {});
-                
                 const strategyAfterReset = { ...strategyData, domains: resetDomains };
                 setStrategyData(strategyAfterReset);
                 saveToLocal(`strategyData_${userId}`, strategyAfterReset);
 
-
                 setTimeout(() => setIsSavingReflection(false), 500); 
                 setTimeout(() => setReflectionSaveMessage(''), 3000); 
-
             } catch (error) {
-                console.error("Error writing new reflection document: ", error);
-                setReflectionSaveMessage(`Failed to save reflection. Error: ${error.message}`);
+                setReflectionSaveMessage("Error anchoring insights.");
                 setIsSavingReflection(false);
             }
         };
 
-        // Aggregated Daily Log Calculation for Summary Screen
-        const totalPossibleChecks = daysOfWeekKeys.length * Object.keys(strategyData.domains).length;
-        let totalCompletedChecks = 0;
-        
-        Object.values(strategyData.domains).forEach(domain => {
-            daysOfWeekKeys.forEach(dayKey => {
-                if (domain.dailyChecklist[dayKey]) {
-                    totalCompletedChecks += 1;
-                }
-            });
-        });
-        
-        const progressPercentage = totalPossibleChecks > 0 ? Math.round((totalCompletedChecks / totalPossibleChecks) * 100) : 0;
-
-        const getProgressMessage = (percent) => {
-            if (percent === 100) return "Fantastic! Total engagement hit 100%. You've been relentless in your flow!";
-            if (percent >= 70) return "Excellent engagement across all domains this week! Keep that momentum flowing into clear waters.";
-            if (percent >= 40) return "Great work! You're building a strong habit. Let's aim to lift your efforts, just like the Whale with its breath!";
-            return "You're getting started! Every check counts toward your Wise Whale journey. Chin up, eyes on the horizon!";
-        };
-        
-        const displayName = strategyData.preferredName || (userId ? userId.split('@')[0] : 'Client');
-        const mockPrimaryGoal = "Define your transitional goal in the Strategy Builder."; 
-
         return (
             <div className="p-4 sm:p-8 max-w-4xl mx-auto bg-white rounded-xl shadow-2xl">
                 <WiseWhaleLogo />
-                <div className="flex justify-between items-start mb-2 border-b pb-2">
-                    <div>
-                        <h1 className="text-4xl font-extrabold text-blue-800">Strategise Dashboard</h1>
-                        <p className="text-gray-600">Welcome to your Personal Best's! workspace {displayName}! </p>
-                    </div>
-                </div>
-                
-                {/* FIX 4: NEW Button Layout and Text */}
-                <div className="flex flex-col space-y-2 mb-8">
-                    <p className="text-sm text-gray-600 font-medium">
-                        Your Data is stored locally - on your device only.  Download completed strategies to store or share.  Logging out after each use increases privacy and confidentiality.
-                    </p>
-                    <div className="flex space-x-4">
-                        <button
-                            onClick={() => window.downloadLocalData()}
-                            className="flex-1 py-3 bg-teal-500 text-white font-bold rounded-xl shadow-lg hover:bg-teal-600 transition-colors transform hover:scale-[1.005] active:scale-98"
-                        >
-                            Download Data Copy
-                        </button>
-                        <button
-                            onClick={() => window.signOutUser()}
-                            // FIX 4: Golden Orange color applied
-                            className="flex-1 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-lg hover:bg-orange-600 transition-colors transform hover:scale-[1.005] active:scale-98"
-                        >
-                            Log Out
-                        </button>
-                    </div>
-                </div>
-                {/* END FIX 4 */}
-
-                {/* Disclaimer in Prominent Box (New Placement) */}
-                <div className="mb-8 p-4 bg-yellow-100 rounded-lg border-l-4 border-yellow-500 shadow-md">
-                    <p className="text-sm font-semibold text-gray-700 italic">
-                        **Disclaimer:** This application is intended to be general, educational, and experiential self-help material, and not as a regulated health service or a substitute for personalised therapy.
-                    </p>
+                <div className="text-center mb-8">
+                    <h1 className="text-4xl font-extrabold text-blue-800">Strategise Dashboard</h1>
+                    <p className="text-gray-600 italic">"Find the treasures in your flow."</p>
                 </div>
 
-                {/* --- Author's Introduction Note and Welcome Message (Moved here) --- */}
-                <div className="text-center mb-8 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-                    <h2 className="text-xl font-bold text-blue-800 mb-4">Author's Note (Melinda):</h2>
-                    <div className="text-lg italic text-gray-700 leading-relaxed space-y-4 text-left px-2">
-                        <p>My philosophy is simple: Everybody can find purpose and fulfillment in pursuit of taking good care. This commitment to self-stewardship is realized across the four key domains of human function: our physical, mental, relational, and creative/productive experiences.</p>
-                        
-                        <p>This journey is not always straightforward; a large portion of our function operates without ones awareness,  "blinded" until allocated focused time and clear intention illuminate the way. True insight requires separating and recognizing your subconscious thoughts, conscious actions, inner landscape, outer world, memories, and future foresight.</p>
-                        
-                        <p>More importantly, we need a workable system to fit practice's into our busy lives!</p>
-                        
-                        <p>By consistently exercising all parts of ourselves, we tone, improve, and maintain them and instill a sense of value. Aiming for your Personal Best's in these areas is not about ego—it provides the clear, infinite direction for progress.</p>
-                        
-                        <p>As you engage in self-observation and self-evaluation here, I hope you find S.M.A.R.T. goals and simple steps with actions that are genuinely enjoyable and rewarding. This is the path to less stress, more success.</p>
-                        
-                        <p>May your striving uncover a wealth of detailed, treasurable insights, enabling you to model your experiences toward deep satisfaction and contentment.</p>
-                    </div>
-
-                    <h3 className="text-lg font-bold text-blue-700 mt-6 mb-3">Invocation to the Whale's Wisdom:</h3>
-                    <p className="text-base italic text-gray-600 leading-normal">
-                        The whale is ancient and wise, a symbol of profound strength and gentle purpose: Lifting extreme weight with breath, they are playful, savvy, and nurturing as they make distant, purposeful journeys—soaking up the nutritious sun and sea.
-                    </p>
+                {/* Primary Navigation Hub */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+                    <button onClick={onDefineStrategy} className="p-6 bg-yellow-50 border-2 border-yellow-400 rounded-2xl text-yellow-900 font-bold hover:bg-yellow-100 transition-all">Strategy Canvas</button>
+                    <button onClick={onProfile} className="p-6 bg-purple-50 border-2 border-purple-400 rounded-2xl text-purple-900 font-bold hover:bg-purple-100 transition-all">Inner Seas Map</button>
+                    <button onClick={onGuidance} className="p-6 bg-blue-50 border-2 border-blue-400 rounded-2xl text-blue-900 font-bold hover:bg-blue-100 transition-all">Goal Compass</button>
                 </div>
-                {/* --- END Author's Introduction Note --- */}
-
-
-                {/* User/Theme Inputs (New Placement) */}
-                <div className="mb-8 p-6 bg-gray-50 rounded-xl shadow-inner border border-gray-200">
-                    <h2 className="text-xl font-bold text-gray-700 mb-4">Your Current Focus:</h2>
-                    <InputField
-                        label="Your Preferred Name:"
-                        name="preferredName"
-                        value={strategyData.preferredName}
-                        onChange={handleStrategyChange}
-                        placeholder="Enter your preferred name."
-                        rows={1}
-                    />
-                    <InputField
-                        label="Overall Theme of Transition you’d like to focus on:"
-                        name="themeTitle"
-                        value={strategyData.themeTitle}
-                        onChange={handleStrategyChange}
-                        placeholder="E.g., Career Change, Health Focus, Boundary Setting."
-                        rows={1}
-                    />
-                    <InputField
-                        label="Date:"
-                        name="date"
-                        type="date"
-                        value={strategyData.date}
-                        onChange={handleStrategyChange}
-                        placeholder=""
-                        rows={1}
-                    />
+				
+       {/* Invocation to the Whale's Wisdom - Restored for Inspiration */}
+                <div className="mb-8 p-6 bg-blue-50/50 rounded-2xl border border-blue-100 text-center italic shadow-sm">
+                    <h3 className="text-lg font-bold text-blue-800 not-italic mb-2">Invocation to the Whale's Wisdom</h3>
+                    <p className="text-gray-600 leading-relaxed">
+                        The whale is ancient and wise, a symbol of profound strength and gentle purpose: 
+                        Lifting extreme weight with breath, they are playful, savvy, and nurturing as they 
+                        make distant, purposeful journeys—soaking up the nutritious sun and sea.</p>
                 </div>
-
-                {/* Core Action Buttons */}
-                <div className="grid sm:grid-cols-3 gap-6 mb-8">
-                    <div className="p-4 bg-purple-100 rounded-lg shadow-md">
-                        <h3 className="text-lg font-bold text-purple-700 mb-2">Review Profile</h3>
-                        <button 
-                            onClick={onProfile} 
-                            className="mt-2 w-full py-3 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 transition-colors transform hover:scale-[1.01] active:scale-95"
-                        >
-                            Hotspots/Coldspots
-                        </button>
-                    </div>
-                    <div className="p-4 bg-blue-100 rounded-lg shadow-md">
-                        <h3 className="text-lg font-bold text-blue-700 mb-2">Goal Guidance</h3>
-                        <button 
-                            onClick={onGuidance}
-                            className="mt-2 w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors transform hover:scale-[1.01] active:scale-95"
-                        >
-                            Planning Framework
-                        </button>
-                    </div>
-                    <div className="p-4 bg-yellow-100 rounded-lg shadow-md border-2 border-yellow-300">
-                        <h3 className="text-lg font-bold text-yellow-700 mb-2">Strategy Canvas</h3>
-                        <button 
-                            onClick={onDefineStrategy} 
-                            className="mt-2 w-full py-3 bg-yellow-500 text-white font-semibold rounded-xl hover:bg-yellow-600 transition-colors transform hover:scale-[1.01] active:scale-95"
-                        >
-                            Define Plan
-                        </button>
-                    </div>
-                </div>
-
-                {/* Engagement Visualization (Waves of Change - Aggregated) */}
-                <div className="mb-8 p-6 bg-teal-50 rounded-lg shadow-xl border-l-4 border-teal-500">
-                    <h2 className="text-2xl font-bold text-teal-700 mb-3">Your Aggregate Waves of Change 📈</h2>
-                    <p className="text-gray-600 mb-4">This bar represents your total action engagement across **all four domains** this week.</p>
+				
+                {/* Reflection Log Section */}
+                <div className="p-6 bg-white rounded-2xl border-2 border-amber-100 shadow-inner mb-8">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Weekly Reflection Log</h2>
                     
-                    <div className="bg-teal-200 rounded-full h-8 overflow-hidden shadow-inner relative">
-                        <div 
-                            className="h-full bg-teal-500 transition-all duration-500 flex items-center justify-end pr-2"
-                            style={{ width: `${progressPercentage}%` }}
-                        >
-                             <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M19.7 7.3c-.6-.7-1.5-1-2.4-1h-1.6c-1.3 0-2.6.4-3.6 1.2L10 8.9c-.8.6-1.9 1.4-2.8 1.4H4c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h3.2c1.7 0 3.3.6 4.6 1.7l.8.6c.9.7 2.1 1.2 3.4 1.2h1.7c.9 0 1.8-.3 2.5-1 .7-.7 1-1.6 1-2.5V8.8c0-.9-.3-1.8-1-2.5zM17 14h-1.6c-.7 0-1.4-.2-2-.5l-.8-.6c-1.3-1-3-1.6-4.8-1.6H4V9h6.2c1.8 0 3.5-.6 4.8-1.6l.8-.6c.7-.5 1.4-.7 2-.7H17v7z"/>
-                            </svg>
-                        </div>
-                         <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-teal-900 mix-blend-multiply">
-                            {progressPercentage}% Engaged ({totalCompletedChecks} / {totalPossibleChecks} Checks)
-                        </span>
-                    </div>
-                    
-                    <p className="mt-4 text-md font-semibold text-teal-800">
-                        {getProgressMessage(progressPercentage)}
-                    </p>
-                </div>
-
-
-                {/* Primary Transition Goal Check-in */}
-                <div className="mb-8 p-6 bg-indigo-50 rounded-lg shadow-md border-l-4 border-indigo-500">
-                    <h2 className="text-2xl font-bold text-indigo-700 mb-3">Goal Reflection & Tracking Log 📝</h2>
-                    
-                    <h3 className="text-xl font-bold text-indigo-700 mt-4 mb-2">1. Weekly Reflection on your Transition</h3>
-                    <p className="text-sm font-semibold text-indigo-900 mb-4 border-b border-indigo-200 pb-2">
-                        Current Potential Goal: {strategyData?.transitionalGoal?.potential || mockPrimaryGoal}
-                    </p>
                     <TextAreaField 
-                        label="Reflect on the progress of your primary goal this week:"
+                        label="Progress on Transition:"
                         value={currentGoalReflection}
-                        onChange={(e) => { setCurrentGoalReflection(e.target.value); setReflectionSaveMessage(''); }}
-                        placeholder="Anchor your thoughts here. What narratives rose? What felt like flow?"
-                        placeholderColor="placeholder-indigo-600/70"
-                        rows={3}
+                        onChange={(e) => setCurrentGoalReflection(e.target.value)}
+                        placeholder="What narratives rose this week?"
                     />
                     
-                    <h3 className="text-xl font-bold text-teal-700 mt-6 mb-2 border-t pt-4">2. Hot-spot/ Cold-spot Experience Window</h3>
                     <TextAreaField 
-                        label="How have you been experiencing hotspot’s and coldspot’s, in the past week? Any insights or queries?"
-                        value={currentHotspotColdspot}
-                        onChange={(e) => { setCurrentHotspotColdspot(e.target.value); setReflectionSaveMessage(''); }}
-                        placeholder="E.g., Hotspots are up, especially with exercise. Coldspots decreased since I managed my device use. Insight: I need more clear boundaries."
-                        placeholderColor="placeholder-teal-600/70"
-                        rows={3}
+                        label="Plan B Evaluation (The Kinder Movement):"
+                        value={currentPlanBReflection}
+                        onChange={(e) => setCurrentPlanBReflection(e.target.value)}
+                        placeholder="If you encountered a cold-spot, how did your Plan B support you?"
                     />
-
-                    <div className="flex justify-between items-center mt-6">
-                        <button 
-                            onClick={handleSaveReflection}
-                            disabled={isSavingReflection || (!currentGoalReflection.trim() && !currentHotspotColdspot.trim())}
-                            className={`py-3 px-6 text-white rounded-xl shadow-lg transition-colors font-bold ${
-                                isSavingReflection ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
-                            }`}
-                        >
-                            {isSavingReflection ? 'Logging Insight...' : 'Save Weekly Reflection Log (Local) & Reset Checks'}
-                        </button>
-                        {reflectionSaveMessage && (
-                            <p className={`text-sm font-medium ${reflectionSaveMessage.startsWith('Failed') ? 'text-red-600' : 'text-green-600'}`}>
-                                {reflectionSaveMessage}
-                            </p>
-                        )}
-                    </div>
                     
-                    {/* Display Reflection History (Simple List for confirmation) */}
-                    {historyEntries.length > 0 && (
-                        <div className="mt-8 pt-4 border-t border-gray-200">
-                            <h4 className="text-lg font-bold text-indigo-700 mb-3">Reflection History ({historyEntries.length} entries)</h4>
-                            <div className="space-y-3 max-h-48 overflow-y-auto p-2 bg-gray-50 rounded-lg border">
-                                {historyEntries.slice(0, 5).map((entry, index) => (
-                                    <div key={entry.id} className="text-sm p-3 border-b last:border-b-0 bg-white shadow-sm rounded">
-                                        <p className="font-semibold text-gray-800">Date: {new Date(entry.timestamp).toLocaleDateString()}</p>
-                                        <p className="text-gray-600 italic mt-1">Goal: {entry.goalReflectionText.substring(0, 80)}{entry.goalReflectionText.length > 80 ? '...' : ''}</p>
-                                        <p className="text-gray-600 italic mt-1">H/C: {entry.hotspotColdspotReflection.substring(0, 80)}{entry.hotspotColdspotReflection.length > 80 ? '...' : ''}</p>
-                                    </div>
-                                ))}
-                                {historyEntries.length > 5 && <p className="text-center text-xs text-gray-500">... and {historyEntries.length - 5} more entries.</p>}
-                            </div>
-                        </div>
-                    )}
+                    <TextAreaField 
+                        label="Hot-spot / Cold-spot Observations:"
+                        value={currentHotspotColdspot}
+                        onChange={(e) => setCurrentHotspotColdspot(e.target.value)}
+                        placeholder="Any new insights?"
+                    />
+                    
+                    <button onClick={handleSaveReflection} className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 transition-all">
+                        {isSavingReflection ? 'Logging...' : 'Anchor Weekly Reflection ⚓️'}
+                    </button>
+                    
+                    {reflectionSaveMessage && <p className="text-center mt-2 text-green-600 font-bold">{reflectionSaveMessage}</p>}
                 </div>
 
+                {/* VISIBLE HISTORY MAP (Your Wisdom Card) */}
+                {historyEntries.length > 0 && (
+                    <div className="mt-12">
+                        <h3 className="text-2xl font-extrabold text-indigo-800 mb-6 flex items-center gap-2">
+                            <span>📜</span> Reflection History
+                        </h3>
+                        <div className="space-y-6 max-h-[500px] overflow-y-auto pr-2">
+                            {historyEntries.map((entry) => (
+                                <div key={entry.id} className="p-6 bg-amber-50/30 border-2 border-amber-100 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
+                                    <div className="flex justify-between items-center mb-4 border-b border-amber-100 pb-2">
+                                        <span className="text-amber-800 font-bold uppercase tracking-widest text-xs">
+                                            {new Date(entry.timestamp).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                        </span>
+                                        <span className="text-xl">🐋</span>
+                                    </div>
+                                    <div className="space-y-4">
+                                        {entry.goalReflectionText && (
+                                            <div>
+                                                <p className="text-xs font-black text-indigo-400 uppercase tracking-tighter">Progress on Transition</p>
+                                                <p className="text-slate-700 leading-relaxed mt-1">{entry.goalReflectionText}</p>
+                                            </div>
+                                        )}
+                                        {entry.planBReflectionText && (
+                                            <div className="p-3 bg-white rounded-xl border border-amber-100">
+                                                <p className="text-xs font-black text-amber-500 uppercase tracking-tighter">Plan B Evaluation</p>
+                                                <p className="text-slate-600 italic mt-1">{entry.planBReflectionText}</p>
+                                            </div>
+                                        )}
+                                        {entry.hotspotColdspotReflection && (
+                                            <div>
+                                                <p className="text-xs font-black text-teal-500 uppercase tracking-tighter">H/C Observations</p>
+                                                <p className="text-slate-700 mt-1">{entry.hotspotColdspotReflection}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
                 
-                {/* Updated Business Details and Copyright Footer (New Placement) */}
-                <div className="mt-10 pt-6 border-t border-gray-200 text-center text-xs text-gray-500 space-y-2">
-                    <h3 className="text-sm font-bold text-gray-700">{BUSINESS_DETAILS.name}</h3>
-                    <p>Strategise for Personal Best’s Application</p>
-                    <p>{BUSINESS_DETAILS.copyright}</p>
-                    <p>
-                        This application is for your personal use only. No part of this application may be reproduced in any form without written permission from the publisher. For information about permission to reproduce selections from this application, please email:
-                    </p>
-                    <p className="font-semibold text-gray-600">{BUSINESS_DETAILS.email}</p>
-                    <p>{BUSINESS_DETAILS.address}</p>
-                    <p><a href={BUSINESS_DETAILS.website} target="_blank" className="text-blue-500 hover:text-blue-700">{BUSINESS_DETAILS.website}</a></p>
-                    <p>Any questions or insights? {BUSINESS_DETAILS.email}</p>
-                    <p className="text-sm text-gray-500 pt-4">Data is maintained locally in your browser.</p>
+                {/* Utility Footer Buttons */}
+                <div className="mt-12 flex flex-col sm:flex-row gap-4 border-t pt-8">
+                    <button onClick={() => window.downloadLocalData()} className="flex-1 py-3 text-teal-700 border-2 border-teal-500 rounded-xl font-bold hover:bg-teal-50 transition-all uppercase text-xs tracking-widest">Download Data Copy</button>
+                    <button onClick={() => window.signOutUser()} className="flex-1 py-3 text-orange-700 border-2 border-orange-500 rounded-xl font-bold hover:bg-orange-50 transition-all uppercase text-xs tracking-widest">Log Out</button>
                 </div>
             </div>
         );
     };
+	
 
-    // ... (rest of DomainMonitor, DomainSection, FullStrategyBuilderScreen, and App component remains the same) ...
-    // Note: I've included the DomainMonitor, DomainSection, and FullStrategyBuilderScreen for context, but they were not directly modified beyond their inclusion here.
-    
-    
-    
-    
-    // START of other large components (included for completeness)
+
+	// START of other large components (included for completeness)
 
     const DomainMonitor = ({ domainKey, domainData, onDomainMonitorChange, onActionChange }) => {
         const daysOfWeekKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
@@ -1261,14 +1116,21 @@
         );
     };
 
-    const DomainSection = ({ domainKey, domainData, onDomainChange, onDomainMonitorChange, onActionChange }) => {
+        const DomainSection = ({ domainKey, domainData, onDomainChange, onDomainMonitorChange, onActionChange }) => {
         const domainDetails = STRATEGY_CONTENT[domainData.domainTitle];
-        const { color, text, border, guidance } = domainDetails;
-        const ref = useRef(null);
+        
+        // CSS class mapping for the Soft Appearance palette
+        const appearanceMap = {
+            'physicalFlow': 'domain-physical',
+            'productiveCreative': 'domain-productive',
+            'tidalConnections': 'domain-relational',
+            'cognitiveMental': 'domain-cognitive'
+        };
+        const softClass = appearanceMap[domainKey] || 'bg-white';
+        const { text, border, guidance } = domainDetails;
 
         const handleChange = (field, value, actionId = null, actionField = null) => {
             let updatedData = { ...domainData };
-
             if (actionId !== null) {
                 updatedData.actions = updatedData.actions.map(action => 
                     action.id === actionId ? { ...action, [actionField]: value } : action
@@ -1276,140 +1138,111 @@
             } else {
                 updatedData[field] = value;
             }
-            
             onDomainChange(domainKey, updatedData);
-        };
-        
-        // Handler for the 'pleased' and 'goalAlignmentEvaluation' fields from the monitor component
-        const handleActionChangeForMonitor = (domainKey, actionId, field, value) => {
-             // Logic for overall 'pleased' checkbox handling (applies to all actions in the domain)
-            if (field === 'pleased' && actionId === null) {
-                const updatedActions = domainData.actions.map(action => ({ ...action, pleased: value }));
-                onDomainChange(domainKey, { ...domainData, actions: updatedActions });
-                return;
-            }
-            
-            // Logic for individual action updates (like the goal alignment evaluation)
-            const updatedActions = domainData.actions.map(action => 
-                action.id === actionId ? { ...action, [field]: value } : action
-            );
-            onDomainChange(domainKey, { ...domainData, actions: updatedActions });
-        };
-
-
-        const getPlaceholderColor = (baseColor) => {
-            const colorMatch = baseColor.match(/bg-(\w+)-\d+/);
-            if (colorMatch) {
-                return `placeholder-${colorMatch[1]}-600/70`;
-            }
-            return 'placeholder-gray-400';
         };
 
         return (
-            <div id={`domain-${domainKey}`} ref={ref} className={`p-6 rounded-xl shadow-2xl mb-12 ${color} border-l-8 ${border}`}>
+            <div id={`domain-${domainKey}`} className={`p-6 domain-card shadow-xl mb-12 ${softClass} border-l-8 ${border}`}>
                 <h3 className={`text-3xl font-extrabold ${text} mb-4 border-b pb-2`}>{domainData.domainTitle}</h3>
                 
-                {/* Domain-Specific Guidance */}
-                <div className="mb-6 p-4 bg-white rounded-lg shadow-inner border-l-4 border-dashed border-gray-400">
-                    <h4 className="text-lg font-bold text-gray-700 mb-2">Goal Guidance:</h4>
+                <div className="mb-6 p-4 bg-white/60 backdrop-blur-sm rounded-lg shadow-inner border-l-4 border-dashed border-gray-400">
+                    <h4 className="text-lg font-bold text-gray-700 mb-1">Goal Guidance:</h4>
                     <p className="text-gray-600 italic text-sm">{guidance}</p>
                 </div>
 
-                <TextAreaField 
-                    label={`Define a goal Title for ${domainData.domainTitle}:`}
+                <InputField 
+                    label="Goal Title:"
                     value={domainData.title}
                     onChange={(e) => handleChange('title', e.target.value)}
                     placeholder="E.g., Raising my physical energy flow"
-                    placeholderColor={getPlaceholderColor(color)}
-                    rows={1}
                 />
                 
+                {/* Priority 4: Sensory Scenery Weaving */}
                 <TextAreaField 
-                    // Updated Question: What is your Criteria of Success?
-                    label="What is your Criteria of Success? (Described as a S.M.A.R.T goal/objective):"
-                    name="successCriteria"
-                    value={domainData.successCriteria}
-                    onChange={(e) => handleChange('successCriteria', e.target.value)}
-                    placeholder="How will I know when I have succeeded? What is the Specific, Measurable outcome?"
-                    placeholderColor={getPlaceholderColor(color)}
-                    rows={2}
-                />
-                
-                <TextAreaField 
-                    // Updated Question: Can you forecast the scenery and sensory experience?
-                    label="Can you forecast the scenery and sensory experience?"
-                    name="forecastScenerySensory"
+                    label="Sensory Scenery (Weekly Check-in):"
                     value={domainData.forecastScenerySensory}
                     onChange={(e) => handleChange('forecastScenerySensory', e.target.value)}
-                    placeholder="Imagine the scene and describe the positive sensory experience of achieving this goal/action."
-                    placeholderColor={getPlaceholderColor(color)}
-                    rows={2}
-                />
-                
-                <TextAreaField 
-                    label="Anticipated Positive Effects/Consequences (The Ripple Effect):"
-                    value={domainData.effects}
-                    onChange={(e) => handleChange('effects', e.target.value)}
-                    placeholder="What are the ripple effects of achieving this success in your wider life?"
-                    placeholderColor={getPlaceholderColor(color)}
+                    placeholder="Describe the sensory experience—what do you see, hear, or feel when this is in flow?"
                     rows={2}
                 />
 
-                <h4 className={`text-xl font-bold ${text} mt-6 mb-4 pt-4 border-t border-dotted ${border}`}>Action Plan (Simple Steps to Take)</h4>
+                <h4 className={`text-xl font-bold ${text} mt-6 mb-4 pt-4 border-t border-dotted ${border}`}>Action Plan & Companion</h4>
                 
-                {domainData.actions.map((action) => (
-                    <div key={action.id} className={`p-4 mb-4 border rounded-lg bg-white/80 shadow-sm border-dashed ${border}`}>
+				                {domainData.actions.map((action) => (
+                    <div key={action.id} className="p-4 mb-4 border rounded-xl bg-white/80 shadow-sm border-dashed border-gray-300">
                         <p className={`text-sm font-semibold ${text} mb-2`}>{action.label}</p>
                         
-                        <TextAreaField 
-                            label="Summary of the Action:"
+                        <InputField 
+                            label="Action Step (Plan A):"
                             value={action.summary}
                             onChange={(e) => handleChange('actions', e.target.value, action.id, 'summary')}
-                            placeholder="What specific step will I take, and when? (Keep it simple and direct)."
-                            placeholderColor={getPlaceholderColor(color)}
-                            rows={1}
+                            placeholder="What specific step will you take?"
                         />
-                        <TextAreaField 
-                            label="What makes this easy? (The hot-spot connection):"
-                            value={action.easy}
-                            onChange={(e) => handleChange('actions', e.target.value, action.id, 'easy')}
-                            placeholder="What resources, skills, or situations support this action? (Anchor your strengths)."
-                            placeholderColor={getPlaceholderColor(color)}
-                            rows={1}
-                        />
-                        <TextAreaField 
-                            label="What makes this hard? (The cold-spot obstacle):"
-                            value={action.hard}
-                            onChange={(e) => handleChange('actions', e.target.value, action.id, 'hard')}
-                            placeholder="What are the potential obstacles or internal resistance? (Look at the anchors)."
-                            placeholderColor={getPlaceholderColor(color)}
-                            rows={1}
-                        />
-                        <TextAreaField 
-                            label="How is this action helpful (Self-Compassion & Motivation):"
-                            value={action.helpful}
-                            onChange={(e) => handleChange('actions', e.target.value, action.id, 'helpful')}
-                            placeholder="How will this action contribute to my well-being and progress? (Affirm the value)."
-                            placeholderColor={getPlaceholderColor(color)}
-                            rows={1}
-                        />
+
+                        {/* Motivation Anchor - The 'Easy' Path */}
+                        <div className="mt-2 p-3 bg-green-50/50 rounded-lg border border-green-100 mb-3">
+                            <InputField 
+                                label="What makes this easy? (Motivation Anchor):"
+                                value={action.easy} 
+                                onChange={(e) => handleChange('actions', e.target.value, action.id, 'easy')}
+                                placeholder="What strengths or resources make this step feel accessible?"
+                            />
+                        </div>
+
+                        {/* Cold-Spot Companion  - The 'Plan B' Path */}
+                        <div className="mt-3 p-3 bg-red-50/50 rounded-lg border border-red-100">
+                            <InputField 
+                                label="Cold-Spot Companion (Plan B):"
+                                value={action.hard} 
+                                onChange={(e) => handleChange('actions', e.target.value, action.id, 'hard')}
+                                placeholder="If a cold-spot rises (resistance), I will..."
+                                className="companion-input" 
+                            />
+                        </div>
                     </div>
                 ))}
+
                 
-                {/* Domain-Specific Monitor */}
                 <DomainMonitor 
                     domainKey={domainKey}
                     domainData={domainData}
                     onDomainMonitorChange={onDomainMonitorChange}
-                    onActionChange={handleActionChangeForMonitor}
+                    onActionChange={onActionChange}
                 />
             </div>
         );
     };
 
-    const FullStrategyBuilderScreen = ({ userId, onComplete }) => {
-        const initialStrategy = loadFromLocal(`strategyData_${userId}`, getInitialStrategyState());
-        const [strategyData, setStrategyData] = useState(initialStrategy);
+
+	const FullStrategyBuilderScreen = ({ userId, onComplete }) => {
+    const initialStrategy = loadFromLocal(`strategyData_${userId}`, getInitialStrategyState());
+    const [strategyData, setStrategyData] = useState(initialStrategy);
+    
+    // --- WEEKLY NUDGE LOGIC ---
+    const [showNudge, setShowNudge] = useState(false);
+	
+	    // --- REAL-TIME AUTO-SAVE (CANVAS DRAFTS) ---
+    // This effect ensures that as you define your strategy, every keystroke is captured.
+    useEffect(() => {
+        if (userId && strategyData) {
+            saveToLocal(`strategyData_${userId}`, strategyData);
+        }
+    }, [strategyData, userId]);
+
+    
+    // --- ADD THIS NEW LINE FOR THE TREASURE CHEST ---
+    const [isChestOpen, setIsChestOpen] = useState(false); 
+    
+    useEffect(() => {
+        const lastSave = localStorage.getItem('wise_whale_last_save_timestamp');
+        if (lastSave) {
+            const oneWeek = 7 * 24 * 60 * 60 * 1000;
+            if (Date.now() - parseInt(lastSave) > oneWeek) {
+                setShowNudge(true);
+            }
+        }
+    }, []);
+
         const [saveMessage, setSaveMessage] = useState('');
         const [isSaving, setIsSaving] = useState(false);
         const [activeDomain, setActiveDomain] = useState(Object.keys(strategyData.domains)[0]);
@@ -1519,10 +1352,80 @@
             }
         };
 
-        return (
+		        return (
             <div className="p-4 sm:p-8 max-w-4xl mx-auto bg-white rounded-xl shadow-2xl">
-                <h1 className="text-4xl font-extrabold text-yellow-700 mb-2 border-b pb-2">Strategy Canvas  ⚓️</h1>
-                <p className="text-gray-600 mb-8">Define your Transitional Goal and the actions for each Personal Best domain...Breathe deep and write direct..</p>
+                {/* 1. The Anchor Icon */}
+                <WiseWhaleLogo />
+                
+                {/* 2. The Gentle Nudge */}
+                {showNudge && (
+                    <div className="mb-8 p-6 bg-indigo-50 border-l-4 border-indigo-400 rounded-2xl shadow-sm">
+                        <p className="text-indigo-800 font-medium italic text-lg text-center">
+                            "It has been a week since your last deep dive. There is no rush, 
+                            but perhaps now is a treasurable time for reflection?"
+                        </p>
+                        <div className="text-center mt-2">
+                            <button 
+                                onClick={() => setShowNudge(false)} 
+                                className="text-xs text-indigo-400 uppercase tracking-widest font-bold hover:text-indigo-600 transition-colors"
+                            >
+                                Dismiss Nudge
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* 3. The Centered Golden Heading */}
+                <div className="text-center mb-12">
+                    <h1 className="text-4xl font-extrabold text-amber-500 mb-2 border-b-2 border-amber-100 pb-4 inline-block">
+                        Strategy Canvas 🐋
+                    </h1>
+                    <p className="text-gray-500 italic mt-2">
+                        "Breathe deep and write direct... find the treasures in your flow."
+                    </p>
+                </div>
+
+                {/* 4. The Reflection Chest (Corrected Logic) */}
+                <div className="mb-12">
+                    <button 
+                        type="button"
+                        onClick={() => setIsChestOpen(!isChestOpen)}
+                        className="w-full py-4 bg-amber-50 border-2 border-amber-200 rounded-2xl text-amber-800 font-bold flex items-center justify-center gap-3 hover:bg-amber-100 transition-all shadow-sm"
+                    >
+                        <span>{isChestOpen ? 'Close the Reflection Chest' : 'Open the Reflection Chest when ready for deeper self-exploration'}</span>
+                        <span className="text-xl">{isChestOpen ? '✨' : '💎'}</span>
+                    </button>
+
+                    {isChestOpen && (
+                        <div className="mt-4 p-8 bg-white border-2 border-amber-100 rounded-3xl shadow-xl">
+                            <h3 className="text-xl font-extrabold text-amber-600 mb-6 border-b border-amber-50 pb-2">
+                                Treasurable Observation Questions
+                            </h3>
+                            <div className="grid md:grid-cols-2 gap-x-8 gap-y-4 text-sm text-slate-600 leading-relaxed">
+                                <p>• Internal dialogue: Was it helpful, harsh, or curious?</p>
+                                <p>• Your tolerance for ambiguity or discomfort (did you breathe through it?)</p>
+                                <p>• Biases identified or acting outside your comfort zone.</p>
+                                <p>• Insights gained from participating.</p>
+                                <p>• Balance of Pessimism vs. Optimism.</p>
+                                <p>• Balance of Positive vs. Negative expectations.</p>
+                                <p>• Self vs. Others orientation (over-giving or under-giving?)</p>
+                                <p>• Recognizing Similarities vs. Differences.</p>
+                                <p>• Processing style: Visual, Kinesthetic, or Auditory?</p>
+                                <p>• Frame of reference: Emotional, Thinking, or Imaginative?</p>
+                                <p>• Generalizing vs. developing beliefs from evidence.</p>
+                                <p>• Distortions: Did the mind jump to conclusions?</p>
+                                <p>• Deletions: What was unconsciously left out?</p>
+                                <p>• Abstract vs. Concrete thinking zones.</p>
+                                <p>• Avoidance vs. Pro-activity.</p>
+                                <p>• All-or-nothing view vs. Options.</p>
+                                <p>• Good times to be Focused vs. Diffused.</p>
+                            </div>
+                            <p className="mt-8 text-center italic text-amber-500 font-medium font-serif">
+                                "Take your time with these... let the answers rise like treasures to the surface."
+                            </p>
+                        </div>
+                    )}
+                </div>
 
                 <form onSubmit={handleSave}>
                     {/* Transitional Goal Section */}
@@ -1555,7 +1458,7 @@
                     </div>
 
                     {/* Domain Tab Navigation (Sticky for easy access) */}
-                    <h2 className="text-2xl font-extrabold text-gray-700 mb-6 border-b pb-2">II. Personal Best Domains & Actions (Charting the Course)</h2>
+                    <h2 className="text-2xl font-extrabold text-gray-700 mb-6 border-b pb-2"></h2>
                     <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm shadow-md rounded-lg p-2 mb-6">
                         <div className="flex space-x-2 overflow-x-auto pb-1">
                             {domainElements.map((domain) => (
@@ -1618,18 +1521,16 @@
     };
 
 
-    // --- The Main App Component ---
-    // NOTE: userId is now passed from the global auth state listener
-    const App = ({ initialUserId }) => {
+        // --- The Main App Component ---
+		    const App = ({ initialUserId }) => {
         const userId = initialUserId;
         
-        const initialPage = loadFromLocal(`currentPage_${userId}`, SCREENS.STRATEGY_SUMMARY);
-        const [currentPage, setCurrentPage] = useState(initialPage);
+        // Priority 1: Force start on the Strategy Canvas
+        const [currentPage, setCurrentPage] = useState(SCREENS.FULL_STRATEGY_BUILDER);
         
         useEffect(() => {
             saveToLocal(`currentPage_${userId}`, currentPage);
         }, [currentPage, userId]);
-
 
         const handleReturnToSummary = useCallback(() => setCurrentPage(SCREENS.STRATEGY_SUMMARY), []);
         const handleGuidanceReview = useCallback(() => setCurrentPage(SCREENS.GOAL_GUIDANCE), []);
@@ -1657,33 +1558,41 @@
                 case SCREENS.FULL_STRATEGY_BUILDER:
                     return <FullStrategyBuilderScreen userId={userId} onComplete={handleReturnToSummary} />; 
                 default:
-                    return <div className="text-center p-10">Starting Application Flow...</div>;
+                    return <div className="text-center p-10 text-gray-400">Navigating the currents...</div>;
             }
         };
 
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-                <div className="w-full">
+            <div className="min-h-screen flex flex-col items-center justify-center p-4">
+                {/* Main Content Area */}
+                <div className="w-full flex-grow">
                     {renderContent()}
                 </div>
+                
+                {/* Global Footer - Always Visible */}
+                <footer className="w-full max-w-4xl mt-12 pb-8 pt-6 border-t border-gray-200 text-center text-xs text-gray-500 space-y-2">
+                    <h3 className="text-sm font-bold text-gray-700">{BUSINESS_DETAILS.name}</h3>
+                    <p>{BUSINESS_DETAILS.copyright}</p>
+                    <p className="italic font-medium">
+                        Disclaimer: This application is general self-help material and not a substitute for personalised therapy.
+                    </p>
+                    <p className="font-semibold text-gray-400 uppercase tracking-widest">{BUSINESS_DETAILS.address}</p>
+                    <p><a href={BUSINESS_DETAILS.website} target="_blank" className="text-blue-500 hover:underline">{BUSINESS_DETAILS.website}</a></p>
+                </footer>
             </div>
         );
     };
 
     // --- FINAL RENDER CALL (CRITICAL) ---
-    // Expose the render function globally so the Firebase listener can trigger it.
     window.renderAppWithAuth = (userId) => {
         const rootElement = document.getElementById('root');
         if (rootElement && userId) {
             ReactDOM.render(<App initialUserId={userId} />, rootElement);
         } else if (rootElement) {
-             // This case handles when the user signs out, ensuring the React app is unmounted.
              ReactDOM.unmountComponentAtNode(rootElement);
         }
     };
-    
-    // Initial check: if the Firebase listener fires immediately with a user, it calls renderAppWithAuth.
-    // Otherwise, the sign-in screen remains visible.
+
     
     </script>
 
