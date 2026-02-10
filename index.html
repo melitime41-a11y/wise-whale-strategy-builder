@@ -57,16 +57,23 @@
             justify-content: center;
         }
 /* Soothing Status Banner Styles */
+/* Update this section in your <style> block */
 #status-banner {
-    display: none;
-    padding: 14px;
-    margin-bottom: 20px;
+    min-height: 0; /* Changed from 20px so it doesn't leave a gap when empty */
+    margin: 0 auto;
     border-radius: 12px;
     text-align: center;
     font-size: 0.9rem;
     border: 1px solid transparent;
-    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.4s ease;
 }
+ 
+/* Add this new helper class */
+.banner-visible {
+    opacity: 1 !important;
+    padding: 14px !important;
+}
+
 
 .banner-success {
     background-color: #f0fdfa; /* Soft Seafoam */
@@ -109,22 +116,41 @@
     <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body>
-	<div id="reset-password-section" style="display: none; max-width: 400px; margin: 20px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; font-family: sans-serif;">
-    <h2 style="color: #2c3e50;">Create New Password</h2>
-    <p style="font-size: 0.9em; color: #666;">Please enter your new password below.</p>
-    
-    <input type="password" id="new-password" placeholder="New Password" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px;">
-    
-    <button onclick="handlePasswordResetSubmit()" style="width: 100%; padding: 10px; background-color: #2c3e50; color: white; border: none; border-radius: 4px; cursor: pointer;">
-        Update Password
-    </button>
-    
-    <p id="reset-message" style="margin-top: 15px; font-size: 0.9em;"></p>
-</div>
-	
+ 
+ <body>
+ 
+ <div id="status-banner" class="max-w-sm mx-auto mt-2 mb-2"></div>
+ <div id="resetFlowWrapper" style="display: none; min-height: 100vh; flex-direction: column; align-items: center; justify-content: center; background-color: #ffffff; padding: 40px 20px 20px 20px; gap: 10px;">
 
-    <div id="signInWrapper" style="display: none;">
+        <div id="reset-password-section" class="p-8 max-w-sm w-full bg-white rounded-2xl shadow-2xl border border-slate-100 text-center">
+            <div class="mb-6">
+                <div class="inline-block p-3 bg-indigo-50 rounded-full mb-4">
+                    <span role="img" aria-label="shield" style="font-size: 2rem;">🛡️</span>
+                </div>
+                <h2 class="text-2xl font-extrabold text-slate-800">Secure Your Account</h2>
+                <p class="text-sm text-slate-500 mt-2">Enter a new, strong password below to complete your reset.</p>
+            </div>
+            
+            <div class="text-left">
+                <label for="new-password" class="block text-sm font-medium text-slate-700 mb-1">New Password</label>
+                <input type="password" id="new-password" placeholder="••••••••" 
+                    class="w-full p-3 border border-slate-300 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all mb-6 text-lg">
+            </div>
+            
+            <button onclick="handlePasswordResetSubmit()" 
+                class="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 transition-all transform hover:scale-[1.01] active:scale-95">
+                Update Password
+            </button>
+            
+            <div class="mt-6">
+                <a href="/" class="text-sm text-indigo-500 hover:text-indigo-700 font-medium transition-colors">
+                    ← Back to Login
+                </a>
+            </div>
+        </div>
+    </div>
+
+	 <div id="signInWrapper" style="display: none; min-height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px 20px 20px; gap: 10px;">
         <div class="p-8 max-w-sm w-full bg-white rounded-xl shadow-2xl text-center">
             <h1 class="text-3xl font-extrabold text-indigo-700 mb-6">Strategise for Personal Bests !</h1>
             
@@ -136,51 +162,37 @@
             <label for="passwordInput" class="block text-left text-sm font-medium text-gray-700 mb-1">Password:</label>
             <input type="password" id="passwordInput" required class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all mb-6">
             
-			<button id="signInButton" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 transition-colors transform hover:scale-[1.005] active:scale-98">
-    Log In to Application
-</button>
+            <button id="signInButton" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 transition-colors transform hover:scale-[1.005] active:scale-98">
+                Log In to Application
+            </button>
 
-<button id="magicLinkButton" class="w-full py-3 mt-4 bg-teal-500 text-white font-bold rounded-xl shadow-lg hover:bg-teal-600 transition-colors transform hover:scale-[1.005] active:scale-98">
-    Email Me a Magic Link
-</button>
-<div style="margin-top: 24px; font-size: 11px; color: #666; line-height: 1.5; border-top: 1px solid #f0f0f0; pt-4;">
-   <p style="margin-bottom: 8px;">
-     A note from the publisher of this self-help resource &mdash; <strong>Wise Whale Psychotherapy</strong>. 
-     Please send questions & feedback to the team at 
-     <a href="mailto:connect@wisewhalepsychotherapy.com" style="color: #4A90E2; text-decoration: none;">connect@wisewhalepsychotherapy.com</a>.
-   </p>
-   <p>
-     By signing in, you agree to our 
-     <a href="/legal/terms" style="color: #4A90E2;">Terms of Service</a> and 
-     <a href="/legal/privacy" style="color: #4A90E2;">Privacy Policy</a>.
-   </p>
-   <p style="margin-top: 12px; opacity: 0.8;">© 2026 WISE WHALE PSYCHOTHERAPY</p>
-</div>
+            <button id="magicLinkButton" class="w-full py-3 mt-4 bg-teal-500 text-white font-bold rounded-xl shadow-lg hover:bg-teal-600 transition-colors transform hover:scale-[1.005] active:scale-98">
+                Email Me a Magic Link
+            </button>
 
+            <div style="margin-top: 24px; font-size: 11px; color: #666; line-height: 1.5; border-top: 1px solid #f0f0f0; padding-top: 16px;">
+               <p style="margin-bottom: 8px;">
+                 A note from the publisher of this self-help resource — <strong>Wise Whale Psychotherapy</strong>. 
+                 <a href="mailto:connect@wisewhalepsychotherapy.com" style="color: #4A90E2; text-decoration: none;">connect@wisewhalepsychotherapy.com</a>.
+               </p>
+               <p>© 2026 WISE WHALE PSYCHOTHERAPY</p>
+            </div>
 
-
-<div id="status-banner"></div>
-
-<div class="mt-8 px-4 leading-relaxed">
-    <p class="text-[0.88rem] text-slate-600 font-normal tracking-tight">
-        When you’re ready to increase privacy, 
-        <span id="reset-link" 
-              class="underline cursor-pointer text-teal-600 font-medium transition-colors hover:text-teal-800"
-              onclick="handleReset()">
-            request password reset. 
-        </span>
-    </p>
-</div>
-
-            <p class="text-xs text-gray-500 mt-6">
-                *Only authorised users can access this tool.*
-            </p>
+            <div class="mt-8 px-4 leading-relaxed">
+                <p class="text-[0.88rem] text-slate-600 font-normal tracking-tight">
+                    When you’re ready to increase privacy, 
+                    <span id="reset-link" 
+                          class="underline cursor-pointer text-teal-600 font-medium transition-colors hover:text-teal-800"
+                          onclick="handleReset()">
+                        request password reset. 
+                    </span>
+                </p>
+            </div>
         </div>
     </div>
     
     <div id="root" style="display: none;"></div>
 	
-    
     <script>
         
 	 // --- 1. Firebase Configuration ---
@@ -199,6 +211,7 @@ const app = !firebase.apps.length ? firebase.initializeApp(firebaseConfig) : fir
 const auth = firebase.auth();
 const analytics = firebase.analytics();
 
+
 // --- 3. The Interceptor (Password Reset Checker) ---
 window.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -206,14 +219,17 @@ window.addEventListener('DOMContentLoaded', () => {
     const actionCode = urlParams.get('oobCode');
 
     if (mode === 'resetPassword' && actionCode) {
-        // Hide login, show reset section
+        // Hide login, show the new centered reset wrapper
         const loginForm = document.getElementById('signInWrapper');
+        const resetWrapper = document.getElementById('resetFlowWrapper');
         const resetSection = document.getElementById('reset-password-section');
         
         if (loginForm) loginForm.style.display = 'none';
-        if (resetSection) resetSection.style.display = 'block';
+        if (resetWrapper) {
+            resetWrapper.style.display = 'flex'; // Uses flex to center everything
+            resetSection.style.display = 'block';
+        }
         
-        // Save code globally for the "Submit" function to use
         window.tempActionCode = actionCode;
         console.log("Password reset mode detected.");
     }
@@ -388,16 +404,27 @@ auth.onAuthStateChanged((user) => {
                 console.error("Sign Out Error:", error);
             });
         };
+		
 		// Function to display the softened banner
-function showStatus(text, type) {
+		function showStatus(text, type) {
     const banner = document.getElementById('status-banner');
+    if (!banner) return;
+
     banner.innerText = text;
-    banner.style.display = 'block';
     
-    // Reset classes and apply the correct softened theme
-    banner.className = ''; 
+    // Structure: w-full for mobile, max-w-sm to match your cards, p-4 for 'meat'
+    banner.className = 'w-full max-w-sm mx-auto my-4 p-4 rounded-xl text-center block shadow-sm'; 
+    
+    // Theme
     banner.classList.add('banner-' + type);
+    
+    // Visibility
+    banner.style.opacity = '1';
+    
+    // Optional: Auto-scroll so the user sees the message
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
 
 // The "Slow Progression" Reset Logic
 function handleReset() {
@@ -433,6 +460,45 @@ function handleReset() {
             if (link) link.classList.remove('slow-refill'); 
         });
 }  
+
+// --- 5. The Missing Link: Submit the New Password ---
+window.handlePasswordResetSubmit = async function() {
+    // We grab the elements directly inside the function to ensure we have the current values
+    const passwordField = document.getElementById('new-password');
+    const newPassword = passwordField ? passwordField.value : '';
+    const actionCode = window.tempActionCode; 
+
+    if (!newPassword || newPassword.length < 6) {
+        showStatus("Please enter a password of at least 6 characters.", "notice");
+        return;
+    }
+
+    if (!actionCode) {
+        showStatus("Session expired or invalid link. Please request a new reset link.", "notice");
+        return;
+    }
+
+    try {
+        // Explicitly use the auth object we initialized earlier
+        await firebase.auth().confirmPasswordReset(actionCode, newPassword);
+        
+        showStatus("Success! Your password has been updated. Redirecting to login...", "success");
+
+        setTimeout(() => {
+            // Clears the URL parameters and reloads to the clean login page
+            window.location.href = window.location.origin + window.location.pathname;
+        }, 2500);
+
+    } catch (error) {
+        console.error("Reset Error:", error);
+        let friendlyMessage = "Link expired or already used. Please try again.";
+        if (error.code === 'auth/weak-password') friendlyMessage = "That password is too weak.";
+        if (error.code === 'auth/invalid-action-code') friendlyMessage = "The reset link is invalid or expired.";
+       
+        showStatus(friendlyMessage, "notice");
+    }
+}
+
 
     </script>
 
